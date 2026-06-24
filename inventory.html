@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medicines – AgroDrop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+    <div class="app-wrapper" id="app"></div>
+
+    <!-- Add/Edit Medicine Modal -->
+    <div class="modal-overlay" id="med-modal">
+        <div class="modal" style="max-width:620px">
+            <div class="modal-header">
+                <h3><i class="fas fa-pills"></i> <span id="modal-title">Add Medicine</span></h3>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="med-form" novalidate>
+                    <input type="hidden" id="med-id" />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Medicine Name <span class="req">*</span></label>
+                            <input type="text" class="form-control" id="med-name" placeholder="e.g. Oxytetracycline 20%"
+                                required />
+                        </div>
+                        <div class="form-group">
+                            <label>Category <span class="req">*</span></label>
+                            <select class="form-control" id="med-category" required>
+                                <option value="">Select category</option>
+                                <option>Antibiotic</option>
+                                <option>Antiparasitic</option>
+                                <option>Supplement</option>
+                                <option>Pesticide</option>
+                                <option>Antifungal</option>
+                                <option>Anti-inflammatory</option>
+                                <option>Vaccine</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input type="text" class="form-control" id="med-manufacturer" placeholder="e.g. Norbrook" />
+                        </div>
+                        <div class="form-group">
+                            <label>Batch Number</label>
+                            <input type="text" class="form-control" id="med-batch" placeholder="e.g. BT2024001" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Expiry Date <span class="req">*</span></label>
+                            <input type="date" class="form-control" id="med-expiry" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (units) <span class="req">*</span></label>
+                            <input type="number" class="form-control" id="med-quantity" min="0" placeholder="0"
+                                required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit Price (UGX) <span class="req">*</span></label>
+                        <input type="number" class="form-control" id="med-price" min="0" placeholder="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" id="med-desc" rows="3"
+                            placeholder="Brief description..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Cancel</button>
+                <button class="btn btn-primary" id="save-med-btn"><i class="fas fa-save"></i> Save Medicine</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Medicine Modal -->
+    <div class="modal-overlay" id="view-modal">
+        <div class="modal" style="max-width:520px">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Medicine Details</h3>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="view-modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/inventory.js"></script>
+</body>
+
+</html>

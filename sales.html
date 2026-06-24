@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sales – AgroDrop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+    <div class="app-wrapper" id="app"></div>
+
+    <div class="modal-overlay" id="sale-modal">
+        <div class="modal" style="max-width:500px">
+            <div class="modal-header">
+                <h3><i class="fas fa-cash-register"></i> Record New Sale</h3>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="sale-form" novalidate>
+                    <div class="form-group">
+                        <label>Medicine <span class="req">*</span></label>
+                        <select class="form-control" id="sale-medicine" required onchange="onMedicineSelect()">
+                            <option value="">Select medicine</option>
+                        </select>
+                    </div>
+                    <div id="med-info-box"
+                        style="display:none;background:var(--bg);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span>Current Stock: <strong id="info-stock">—</strong></span>
+                            <span>Unit Price: <strong id="info-price">—</strong></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quantity <span class="req">*</span></label>
+                            <input type="number" class="form-control" id="sale-qty" min="1" placeholder="0" required
+                                oninput="calcTotal()" />
+                        </div>
+                        <div class="form-group">
+                            <label>Selling Price (UGX) <span class="req">*</span></label>
+                            <input type="number" class="form-control" id="sale-price" min="0" placeholder="0" required
+                                oninput="calcTotal()" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Amount (UGX)</label>
+                        <input type="text" class="form-control" id="sale-total" readonly
+                            style="background:#f5f5f5;font-weight:700;color:var(--primary);font-size:16px;" />
+                    </div>
+                    <div class="form-group">
+                        <label>Sale Date <span class="req">*</span></label>
+                        <input type="date" class="form-control" id="sale-date" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Cancel</button>
+                <button class="btn btn-primary" id="save-sale-btn"><i class="fas fa-save"></i> Save Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/sales.js"></script>
+</body>
+
+</html>
