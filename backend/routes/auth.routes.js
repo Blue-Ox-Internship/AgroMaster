@@ -1,9 +1,38 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { authenticate } = require('../middleware/auth');
 const User = require('../models/User');
+const supabaseClient = require('../supabase/client');
 
 const router = express.Router();
+const supabaseConfigured = Boolean(supabaseClient && supabaseClient.supabaseUrl && supabaseClient.supabaseAnonKey && !String(supabaseClient.supabaseAnonKey).includes('replace_with'));
+
+async function findSupabaseUserByEmail(email) {
+    if (!supabaseConfigured) return null;
+
+    const { data, error } = await supabaseClient
+        .from('users')
+        .select('id, full_name, email, phone, business_name, role, is_active, password_hash')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+
+    if (error) throw error;
+    return data;
+}
+
+async function createSupabaseUser(userPayload) {
+    if (!supabaseConfigured) return null;
+
+    const { data, error } = await supabaseClient
+        .from('users')
+        .insert(userPayload)
+        .select('id, full_name, email, phone, business_name, role, is_active')
+        .single();
+
+    if (error) throw error;
+    return data;
+}
 
 // Register new user
 router.post('/register', async (req, res) => {
@@ -15,6 +44,45 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({
                 status: 'error',
                 message: 'Please provide full name, email, and password'
+            });
+        }
+
+        if (supabaseConfigured) {
+            const existingUser = await findSupabaseUserByEmail(email);
+            if (existingUser) {
+                return res.status(409).json({
+                    status: 'error',
+                    message: 'Email already registered'
+                });
+            }
+
+            const passwordHash = await bcrypt.hash(password, 10);
+            const user = await createSupabaseUser({
+                full_name,
+                email: email.toLowerCase(),
+                phone,
+                business_name,
+                password_hash: passwordHash,
+                role: role || 'Sales Attendant',
+                is_active: true
+            });
+
+            const token = jwt.sign(
+                { user_id: user.id, email: user.email, role: user.role },
+                process.env.JWT_SECRET || 'your_super_secret_jwt_key_here_change_this_in_production',
+                { expiresIn: process.env.JWT_EXPIRY || '7d' }
+            );
+
+            return res.status(201).json({
+                status: 'success',
+                message: 'User registered successfully',
+                token,
+                user: {
+                    user_id: user.id,
+                    full_name: user.full_name,
+                    email: user.email,
+                    role: user.role
+                }
             });
         }
 
@@ -82,6 +150,53 @@ router.post('/login', async (req, res) => {
             });
         }
 
+        if (supabaseConfigured) {
+            const user = await findSupabaseUserByEmail(email);
+
+            if (!user) {
+                return res.status(401).json({
+                    status: 'error',
+                    message: 'Invalid email or password'
+                });
+            }
+
+            const isPasswordValid = await bcrypt.compare(password, user.password_hash || '');
+
+            if (!isPasswordValid) {
+                return res.status(401).json({
+                    status: 'error',
+                    message: 'Invalid email or password'
+                });
+            }
+
+            if (!user.is_active) {
+                return res.status(403).json({
+                    status: 'error',
+                    message: 'This account has been deactivated'
+                });
+            }
+
+            const token = jwt.sign(
+                { user_id: user.id, email: user.email, role: user.role },
+                process.env.JWT_SECRET || 'your_super_secret_jwt_key_here_change_this_in_production',
+                { expiresIn: process.env.JWT_EXPIRY || '7d' }
+            );
+
+            return res.json({
+                status: 'success',
+                message: 'Login successful',
+                token,
+                user: {
+                    user_id: user.id,
+                    full_name: user.full_name,
+                    email: user.email,
+                    phone: user.phone,
+                    business_name: user.business_name,
+                    role: user.role
+                }
+            });
+        }
+
         // Find user and select password field
         const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
 
@@ -145,6 +260,33 @@ router.post('/login', async (req, res) => {
 // Get current user
 router.get('/me', authenticate, async (req, res) => {
     try {
+        if (supabaseConfigured) {
+            const { data, error } = await supabaseClient
+                .from('users')
+                .select('id, full_name, email, phone, business_name, role, is_active')
+                .eq('id', req.user.user_id)
+                .maybeSingle();
+
+            if (error || !data) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'User not found'
+                });
+            }
+
+            return res.json({
+                status: 'success',
+                user: {
+                    user_id: data.id,
+                    full_name: data.full_name,
+                    email: data.email,
+                    phone: data.phone,
+                    business_name: data.business_name,
+                    role: data.role
+                }
+            });
+        }
+
         const user = await User.findById(req.user.user_id);
 
         if (!user) {

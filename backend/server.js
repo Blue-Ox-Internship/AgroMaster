@@ -3,12 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const supabaseClient = require('./supabase/client');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 app.locals.dbConnected = false;
+app.locals.supabaseConnected = Boolean(supabaseClient);
 
 // ===== MIDDLEWARE =====
 app.use(express.json({ limit: '10mb' }));
@@ -57,7 +59,9 @@ app.get('/api/health', (req, res) => {
         status: 'success',
         message: 'AgroDrop API is running',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        supabaseConfigured: app.locals.supabaseConnected,
+        mongodbConfigured: app.locals.dbConnected
     });
 });
 
