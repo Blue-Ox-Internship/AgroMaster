@@ -15,7 +15,9 @@ if (supabaseUrl && supabaseAnonKey && !String(supabaseAnonKey).includes('replace
     });
 }
 
-module.exports = supabase;
-module.exports.supabaseUrl = supabaseUrl;
-module.exports.supabaseAnonKey = supabaseAnonKey;
-module.exports.supabaseServiceRoleKey = supabaseServiceRoleKey;
+const exportedClient = supabase || {};
+exportedClient.supabaseUrl = supabaseUrl;
+exportedClient.supabaseAnonKey = supabaseAnonKey;
+exportedClient.supabaseServiceRoleKey = supabaseServiceRoleKey;
+
+module.exports = exportedClient;
