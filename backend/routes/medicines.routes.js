@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { medicineRules, medicineUpdateRules, idParamRule } = require('../middleware/validate');
 const Medicine = require('../models/Medicine');
 const Alert = require('../models/Alert');
 const supabaseClient = require('../supabase/client');
@@ -75,7 +76,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // Get medicine by ID
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const medicine = await getSupabaseMedicineById(req.params.id);
@@ -115,7 +116,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Create medicine
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, medicineRules, async (req, res) => {
     try {
         const { medicine_name, category, manufacturer, batch_number, expiry_date, quantity, unit_price, description } = req.body;
 
@@ -183,7 +184,7 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // Update medicine
-router.put('/:id', authenticate, async (req, res) => {
+router.put('/:id', authenticate, idParamRule, medicineUpdateRules, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('medicines').update({
@@ -230,7 +231,7 @@ router.put('/:id', authenticate, async (req, res) => {
 });
 
 // Delete medicine
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { error } = await supabaseClient.from('medicines').delete().eq('id', req.params.id);

@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { idParamRule, alertStatusRule } = require('../middleware/validate');
 const Alert = require('../models/Alert');
 const supabaseClient = require('../supabase/client');
 const fallbackStore = require('../config/fallback-store');
@@ -20,7 +21,7 @@ async function enrichAlert(alert) {
 }
 
 // Get all alerts
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, alertStatusRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { status, alert_type, limit } = req.query;
@@ -70,7 +71,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // Get alert by ID
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('alerts').select('*').eq('id', req.params.id).maybeSingle();
@@ -79,6 +80,14 @@ router.get('/:id', authenticate, async (req, res) => {
                 return res.status(404).json({ status: 'error', message: 'Alert not found' });
             }
             const alert = await enrichAlert(data);
+            return res.json({ status: 'success', alert });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const alert = fallbackStore.getItem('alerts', req.params.id);
+            if (!alert) {
+                return res.status(404).json({ status: 'error', message: 'Alert not found' });
+            }
             return res.json({ status: 'success', alert });
         }
 
@@ -104,13 +113,22 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Mark alert as read
-router.patch('/:id/read', authenticate, async (req, res) => {
+router.patch('/:id/read', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('alerts').update({ status: 'read', read_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', req.params.id).select('*').single();
             if (error) throw error;
             const alert = await enrichAlert(data);
             return res.json({ status: 'success', message: 'Alert marked as read', alert });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const alert = fallbackStore.getItem('alerts', req.params.id);
+            if (!alert) {
+                return res.status(404).json({ status: 'error', message: 'Alert not found' });
+            }
+            fallbackStore.updateItem('alerts', req.params.id, { status: 'read' });
+            return res.json({ status: 'success', message: 'Alert marked as read', alert: { ...alert, status: 'read' } });
         }
 
         const alert = await Alert.findByIdAndUpdate(
@@ -148,6 +166,12 @@ router.patch('/all/read', authenticate, async (req, res) => {
             return res.json({ status: 'success', message: 'All alerts marked as read' });
         }
 
+        if (!req.app.locals.dbConnected) {
+            const alerts = fallbackStore.listItems('alerts');
+            alerts.forEach((a) => fallbackStore.updateItem('alerts', a.alert_id, { status: 'read' }));
+            return res.json({ status: 'success', message: 'All alerts marked as read' });
+        }
+
         await Alert.updateMany(
             { status: 'unread' },
             { status: 'read', read_at: Date.now() }
@@ -166,13 +190,22 @@ router.patch('/all/read', authenticate, async (req, res) => {
 });
 
 // Archive alert
-router.patch('/:id/archive', authenticate, async (req, res) => {
+router.patch('/:id/archive', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('alerts').update({ status: 'archived', updated_at: new Date().toISOString() }).eq('id', req.params.id).select('*').single();
             if (error) throw error;
             const alert = await enrichAlert(data);
             return res.json({ status: 'success', message: 'Alert archived', alert });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const alert = fallbackStore.getItem('alerts', req.params.id);
+            if (!alert) {
+                return res.status(404).json({ status: 'error', message: 'Alert not found' });
+            }
+            fallbackStore.updateItem('alerts', req.params.id, { status: 'archived' });
+            return res.json({ status: 'success', message: 'Alert archived', alert: { ...alert, status: 'archived' } });
         }
 
         const alert = await Alert.findByIdAndUpdate(

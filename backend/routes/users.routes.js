@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { authenticate, authorize } = require('../middleware/auth');
+const { userRules, userUpdateRules, idParamRule } = require('../middleware/validate');
 const User = require('../models/User');
 const supabaseClient = require('../supabase/client');
 const fallbackStore = require('../config/fallback-store');
@@ -44,7 +45,7 @@ router.get('/', authenticate, authorize('Administrator'), async (req, res) => {
 });
 
 // Get user by ID (Admin or own user)
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('users').select('id, full_name, email, phone, business_name, role, is_active, created_at, updated_at').eq('id', req.params.id).maybeSingle();
@@ -53,6 +54,15 @@ router.get('/:id', authenticate, async (req, res) => {
                 return res.status(404).json({ status: 'error', message: 'User not found' });
             }
             return res.json({ status: 'success', user: data });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const user = fallbackStore.getItem('users', req.params.id);
+            if (!user) {
+                return res.status(404).json({ status: 'error', message: 'User not found' });
+            }
+            const { password, ...safeUser } = user;
+            return res.json({ status: 'success', user: safeUser });
         }
 
         const user = await User.findById(req.params.id).select('-password');
@@ -77,7 +87,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Create new user (Admin only)
-router.post('/', authenticate, authorize('Administrator'), async (req, res) => {
+router.post('/', authenticate, authorize('Administrator'), userRules, async (req, res) => {
     try {
         const { full_name, email, phone, business_name, password, role } = req.body;
 
@@ -165,7 +175,7 @@ router.post('/', authenticate, authorize('Administrator'), async (req, res) => {
 });
 
 // Update user (Admin or own user)
-router.put('/:id', authenticate, async (req, res) => {
+router.put('/:id', authenticate, idParamRule, userUpdateRules, async (req, res) => {
     try {
         const { full_name, email, phone, business_name, role } = req.body;
 
@@ -186,6 +196,15 @@ router.put('/:id', authenticate, async (req, res) => {
             const { data, error } = await supabaseClient.from('users').update({ ...updateData, updated_at: new Date().toISOString() }).eq('id', req.params.id).select('id, full_name, email, phone, business_name, role, is_active').single();
             if (error) throw error;
             return res.json({ status: 'success', message: 'User updated successfully', user: data });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const user = fallbackStore.updateItem('users', req.params.id, updateData);
+            if (!user) {
+                return res.status(404).json({ status: 'error', message: 'User not found' });
+            }
+            const { password, ...safeUser } = user;
+            return res.json({ status: 'success', message: 'User updated successfully', user: safeUser });
         }
 
         const user = await User.findByIdAndUpdate(
@@ -215,12 +234,17 @@ router.put('/:id', authenticate, async (req, res) => {
 });
 
 // Delete user (Admin only)
-router.delete('/:id', authenticate, authorize('Administrator'), async (req, res) => {
+router.delete('/:id', authenticate, authorize('Administrator'), idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { error } = await supabaseClient.from('users').delete().eq('id', req.params.id);
             if (error) throw error;
             return res.json({ status: 'success', message: 'User deleted successfully' });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const deleted = fallbackStore.deleteItem('users', req.params.id);
+            return res.json({ status: 'success', message: deleted ? 'User deleted successfully' : 'User not found' });
         }
 
         const user = await User.findByIdAndDelete(req.params.id);

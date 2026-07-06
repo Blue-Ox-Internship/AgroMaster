@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { saleRules, idParamRule } = require('../middleware/validate');
 const Sale = require('../models/Sale');
 const Medicine = require('../models/Medicine');
 const supabaseClient = require('../supabase/client');
@@ -119,7 +120,7 @@ router.get('/stats/daily', authenticate, async (req, res) => {
 });
 
 // Get sale by ID
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('sales').select('*').eq('id', req.params.id).maybeSingle();
@@ -128,6 +129,14 @@ router.get('/:id', authenticate, async (req, res) => {
                 return res.status(404).json({ status: 'error', message: 'Sale not found' });
             }
             const sale = await enrichSale(data);
+            return res.json({ status: 'success', sale });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const sale = fallbackStore.getItem('sales', req.params.id);
+            if (!sale) {
+                return res.status(404).json({ status: 'error', message: 'Sale not found' });
+            }
             return res.json({ status: 'success', sale });
         }
 
@@ -155,7 +164,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Create sale
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, saleRules, async (req, res) => {
     try {
         const { medicine_id, quantity, selling_price, sale_date, customer_name, payment_method, notes } = req.body;
 
@@ -267,12 +276,17 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // Delete sale
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { error } = await supabaseClient.from('sales').delete().eq('id', req.params.id);
             if (error) throw error;
             return res.json({ status: 'success', message: 'Sale deleted successfully' });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const deleted = fallbackStore.deleteItem('sales', req.params.id);
+            return res.json({ status: 'success', message: deleted ? 'Sale deleted successfully' : 'Sale not found' });
         }
 
         const sale = await Sale.findByIdAndDelete(req.params.id);

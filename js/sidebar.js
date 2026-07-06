@@ -1,5 +1,5 @@
 /* =============================================
-   AgroDrop - Shared Sidebar + Layout Renderer
+   AgroMaster - Shared Sidebar + Layout Renderer
    ============================================= */
 
 function renderSidebar(pageTitle, pageSubtitle) {
@@ -74,7 +74,7 @@ function renderSidebar(pageTitle, pageSubtitle) {
             <line x1="39" y1="74" x2="40" y2="78" stroke="#FF8F00" stroke-width="1.5"/>
           </svg>
         </div>
-        <div class="logo-text"><h2>AgroDrop</h2><span>Inventory System</span></div>
+        <div class="logo-text"><h2>AgroMaster</h2><span>Inventory System</span></div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section-title">Main Menu</div>

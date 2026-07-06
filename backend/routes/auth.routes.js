@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { authenticate } = require('../middleware/auth');
+const { loginRules, registerRules } = require('../middleware/validate');
 const User = require('../models/User');
 const supabaseClient = require('../supabase/client');
 const demoUsers = require('../config/demo-users');
@@ -83,7 +84,7 @@ async function isValidPassword(user, password) {
 }
 
 // Register new user
-router.post('/register', async (req, res) => {
+router.post('/register', registerRules, async (req, res) => {
     try {
         const { full_name, email, phone, business_name, password, role } = req.body;
 
@@ -218,7 +219,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login user
-router.post('/login', async (req, res) => {
+router.post('/login', loginRules, async (req, res) => {
     try {
         const email = String(req.body?.email || '').trim().toLowerCase();
         const password = String(req.body?.password || '').trim();
@@ -371,6 +372,10 @@ router.post('/login', async (req, res) => {
 // Get current user
 router.get('/me', authenticate, async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ status: 'error', message: 'Authentication required' });
+        }
+
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient
                 .from('users')

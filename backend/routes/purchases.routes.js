@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { purchaseRules, idParamRule } = require('../middleware/validate');
 const Purchase = require('../models/Purchase');
 const Medicine = require('../models/Medicine');
 const supabaseClient = require('../supabase/client');
@@ -82,7 +83,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // Get purchase by ID
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('purchases').select('*').eq('id', req.params.id).maybeSingle();
@@ -91,6 +92,14 @@ router.get('/:id', authenticate, async (req, res) => {
                 return res.status(404).json({ status: 'error', message: 'Purchase not found' });
             }
             const purchase = await enrichPurchase(data);
+            return res.json({ status: 'success', purchase });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const purchase = fallbackStore.getItem('purchases', req.params.id);
+            if (!purchase) {
+                return res.status(404).json({ status: 'error', message: 'Purchase not found' });
+            }
             return res.json({ status: 'success', purchase });
         }
 
@@ -118,7 +127,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Create purchase
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, purchaseRules, async (req, res) => {
     try {
         const { supplier_id, medicine_id, quantity, buying_price, purchase_date, invoice_number, notes } = req.body;
 
@@ -206,12 +215,17 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // Delete purchase
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { error } = await supabaseClient.from('purchases').delete().eq('id', req.params.id);
             if (error) throw error;
             return res.json({ status: 'success', message: 'Purchase deleted successfully' });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const deleted = fallbackStore.deleteItem('purchases', req.params.id);
+            return res.json({ status: 'success', message: deleted ? 'Purchase deleted successfully' : 'Purchase not found' });
         }
 
         const purchase = await Purchase.findByIdAndDelete(req.params.id);

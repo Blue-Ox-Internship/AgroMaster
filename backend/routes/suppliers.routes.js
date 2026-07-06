@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { supplierRules, supplierUpdateRules, idParamRule } = require('../middleware/validate');
 const Supplier = require('../models/Supplier');
 const Purchase = require('../models/Purchase');
 const supabaseClient = require('../supabase/client');
@@ -62,7 +63,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // Get supplier by ID
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data: supplier, error: supplierError } = await supabaseClient.from('suppliers').select('*').eq('id', req.params.id).maybeSingle();
@@ -83,6 +84,23 @@ router.get('/:id', authenticate, async (req, res) => {
                     totalQty,
                     totalSpent
                 }
+            });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const supplier = fallbackStore.getItem('suppliers', req.params.id);
+            if (!supplier) {
+                return res.status(404).json({ status: 'error', message: 'Supplier not found' });
+            }
+
+            const purchases = fallbackStore.listItems('purchases').filter((p) => String(p.supplier_id) === String(req.params.id));
+            const totalQty = purchases.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+            const totalSpent = purchases.reduce((sum, p) => sum + (Number(p.quantity || 0) * Number(p.buying_price || 0)), 0);
+
+            return res.json({
+                status: 'success',
+                supplier,
+                stats: { purchaseCount: purchases.length, totalQty, totalSpent }
             });
         }
 
@@ -117,7 +135,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Create supplier
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, supplierRules, async (req, res) => {
     try {
         const { supplier_name, phone, email, address, contact_person, payment_terms } = req.body;
 
@@ -181,7 +199,7 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // Update supplier
-router.put('/:id', authenticate, async (req, res) => {
+router.put('/:id', authenticate, idParamRule, supplierUpdateRules, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('suppliers').update({
@@ -191,6 +209,14 @@ router.put('/:id', authenticate, async (req, res) => {
 
             if (error) throw error;
             return res.json({ status: 'success', message: 'Supplier updated successfully', supplier: data });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const supplier = fallbackStore.updateItem('suppliers', req.params.id, req.body);
+            if (!supplier) {
+                return res.status(404).json({ status: 'error', message: 'Supplier not found' });
+            }
+            return res.json({ status: 'success', message: 'Supplier updated successfully', supplier });
         }
 
         const supplier = await Supplier.findByIdAndUpdate(
@@ -220,12 +246,20 @@ router.put('/:id', authenticate, async (req, res) => {
 });
 
 // Delete supplier (soft delete)
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, idParamRule, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { data, error } = await supabaseClient.from('suppliers').update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', req.params.id).select('*').single();
             if (error) throw error;
             return res.json({ status: 'success', message: 'Supplier deleted successfully', supplier: data });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const deleted = fallbackStore.updateItem('suppliers', req.params.id, { is_active: false });
+            if (!deleted) {
+                return res.status(404).json({ status: 'error', message: 'Supplier not found' });
+            }
+            return res.json({ status: 'success', message: 'Supplier deleted successfully' });
         }
 
         const supplier = await Supplier.findByIdAndUpdate(

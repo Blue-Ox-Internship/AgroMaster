@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { reportDateRangeRules } = require('../middleware/validate');
 const Medicine = require('../models/Medicine');
 const Purchase = require('../models/Purchase');
 const Sale = require('../models/Sale');
@@ -62,7 +63,7 @@ router.get('/stock', authenticate, async (req, res) => {
 });
 
 // Sales Report
-router.get('/sales', authenticate, async (req, res) => {
+router.get('/sales', authenticate, reportDateRangeRules, async (req, res) => {
     try {
         if (supabaseConfigured) {
             const { from, to } = req.query;

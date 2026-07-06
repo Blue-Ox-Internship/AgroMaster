@@ -79,7 +79,7 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'success',
-        message: 'AgroDrop API is running',
+        message: 'AgroMaster API is running',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         supabaseConfigured: app.locals.supabaseConnected,
@@ -125,7 +125,7 @@ const server = app.listen(PORT, HOST, () => {
     const localIp = getLocalIp();
     console.log(`
 ╔════════════════════════════════════════╗
-║    AgroDrop API Server Started        ║
+║    AgroMaster API Server Started      ║
 ║    Environment: ${process.env.NODE_ENV || 'development'.padEnd(18)}║
 ║    Port: ${PORT.toString().padEnd(27)}║
 ║    URL: http://localhost:${PORT}     ║
