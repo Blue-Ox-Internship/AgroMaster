@@ -4,9 +4,39 @@ const bcrypt = require('bcryptjs');
 const { authenticate } = require('../middleware/auth');
 const User = require('../models/User');
 const supabaseClient = require('../supabase/client');
+const demoUsers = require('../config/demo-users');
+const fallbackStore = require('../config/fallback-store');
 
 const router = express.Router();
-const supabaseConfigured = Boolean(supabaseClient && supabaseClient.supabaseUrl && supabaseClient.supabaseAnonKey && !String(supabaseClient.supabaseAnonKey).includes('replace_with'));
+const DEFAULT_JWT_SECRET = process.env.JWT_SECRET || 'agrodrop-dev-secret';
+const supabaseConfigured = Boolean(
+    supabaseClient
+    && supabaseClient.from
+    && supabaseClient.supabaseUrl
+    && (supabaseClient.supabaseServiceRoleKey || supabaseClient.supabaseAnonKey)
+    && !String(supabaseClient.supabaseServiceRoleKey || supabaseClient.supabaseAnonKey).includes('replace_with')
+);
+
+function createToken(user) {
+    return jwt.sign(
+        { user_id: user.user_id || user.id || user._id, email: user.email, role: user.role },
+        DEFAULT_JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRY || '7d' }
+    );
+}
+
+function loginDemoUser(email, password) {
+    const user = demoUsers.find((demoUser) => demoUser.email === email.toLowerCase() && demoUser.password === password);
+    if (!user) return null;
+
+    const { password: _password, ...safeUser } = user;
+    return {
+        status: 'success',
+        message: 'Login successful',
+        token: createToken(safeUser),
+        user: safeUser
+    };
+}
 
 async function findSupabaseUserByEmail(email) {
     if (!supabaseConfigured) return null;
@@ -32,6 +62,24 @@ async function createSupabaseUser(userPayload) {
 
     if (error) throw error;
     return data;
+}
+
+function findFallbackUserByEmail(email) {
+    return fallbackStore.listItems('users').find((user) => user.email.toLowerCase() === String(email).toLowerCase()) || null;
+}
+
+function findFallbackUserById(id) {
+    return fallbackStore.listItems('users').find((user) => String(user.user_id) === String(id)) || null;
+}
+
+async function isValidPassword(user, password) {
+    if (!user || !password) return false;
+
+    if (typeof user.password === 'string' && user.password.startsWith('$2')) {
+        return bcrypt.compare(password, user.password);
+    }
+
+    return String(user.password) === String(password);
 }
 
 // Register new user
@@ -69,7 +117,7 @@ router.post('/register', async (req, res) => {
 
             const token = jwt.sign(
                 { user_id: user.id, email: user.email, role: user.role },
-                process.env.JWT_SECRET || 'your_super_secret_jwt_key_here_change_this_in_production',
+                DEFAULT_JWT_SECRET,
                 { expiresIn: process.env.JWT_EXPIRY || '7d' }
             );
 
@@ -82,6 +130,38 @@ router.post('/register', async (req, res) => {
                     full_name: user.full_name,
                     email: user.email,
                     role: user.role
+                }
+            });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const existingUser = findFallbackUserByEmail(email);
+            if (existingUser) {
+                return res.status(409).json({
+                    status: 'error',
+                    message: 'Email already registered'
+                });
+            }
+
+            const createdUser = fallbackStore.createItem('users', {
+                full_name,
+                email: email.toLowerCase(),
+                phone,
+                business_name,
+                password,
+                role: role || 'Sales Attendant'
+            });
+
+            const token = createToken(createdUser);
+            return res.status(201).json({
+                status: 'success',
+                message: 'User registered successfully',
+                token,
+                user: {
+                    user_id: createdUser.user_id,
+                    full_name: createdUser.full_name,
+                    email: createdUser.email,
+                    role: createdUser.role
                 }
             });
         }
@@ -114,7 +194,7 @@ router.post('/register', async (req, res) => {
                 email: user.email,
                 role: user.role
             },
-            process.env.JWT_SECRET || 'your_super_secret_jwt_key_here_change_this_in_production',
+            DEFAULT_JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRY || '7d' }
         );
 
@@ -140,7 +220,8 @@ router.post('/register', async (req, res) => {
 // Login user
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = String(req.body?.email || '').trim().toLowerCase();
+        const password = String(req.body?.password || '').trim();
 
         // Validate input
         if (!email || !password) {
@@ -148,6 +229,11 @@ router.post('/login', async (req, res) => {
                 status: 'error',
                 message: 'Please provide email and password'
             });
+        }
+
+        const demoLogin = loginDemoUser(email, password);
+        if (demoLogin) {
+            return res.json(demoLogin);
         }
 
         if (supabaseConfigured) {
@@ -178,7 +264,7 @@ router.post('/login', async (req, res) => {
 
             const token = jwt.sign(
                 { user_id: user.id, email: user.email, role: user.role },
-                process.env.JWT_SECRET || 'your_super_secret_jwt_key_here_change_this_in_production',
+                DEFAULT_JWT_SECRET,
                 { expiresIn: process.env.JWT_EXPIRY || '7d' }
             );
 
@@ -194,6 +280,31 @@ router.post('/login', async (req, res) => {
                     business_name: user.business_name,
                     role: user.role
                 }
+            });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const fallbackUser = findFallbackUserByEmail(email);
+            if (fallbackUser && (await isValidPassword(fallbackUser, password))) {
+                const safeUser = {
+                    user_id: fallbackUser.user_id,
+                    full_name: fallbackUser.full_name,
+                    email: fallbackUser.email,
+                    phone: fallbackUser.phone,
+                    business_name: fallbackUser.business_name,
+                    role: fallbackUser.role
+                };
+                return res.json({
+                    status: 'success',
+                    message: 'Login successful',
+                    token: createToken(safeUser),
+                    user: safeUser
+                });
+            }
+
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid email or password'
             });
         }
 
@@ -232,7 +343,7 @@ router.post('/login', async (req, res) => {
                 email: user.email,
                 role: user.role
             },
-            process.env.JWT_SECRET || 'your_super_secret_jwt_key_here_change_this_in_production',
+            DEFAULT_JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRY || '7d' }
         );
 
@@ -283,6 +394,28 @@ router.get('/me', authenticate, async (req, res) => {
                     phone: data.phone,
                     business_name: data.business_name,
                     role: data.role
+                }
+            });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const fallbackUser = findFallbackUserById(req.user.user_id);
+            if (!fallbackUser) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'User not found'
+                });
+            }
+
+            return res.json({
+                status: 'success',
+                user: {
+                    user_id: fallbackUser.user_id,
+                    full_name: fallbackUser.full_name,
+                    email: fallbackUser.email,
+                    phone: fallbackUser.phone,
+                    business_name: fallbackUser.business_name,
+                    role: fallbackUser.role
                 }
             });
         }

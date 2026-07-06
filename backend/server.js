@@ -3,14 +3,23 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const supabaseClient = require('./supabase/client');
+const fs = require('fs');
+const os = require('os');
 
 // Load environment variables
 dotenv.config();
 
+const supabaseClient = require('./supabase/client');
+
 const app = express();
 app.locals.dbConnected = false;
-app.locals.supabaseConnected = Boolean(supabaseClient);
+app.locals.supabaseConnected = Boolean(
+    supabaseClient
+    && supabaseClient.from
+    && supabaseClient.supabaseUrl
+    && (supabaseClient.supabaseServiceRoleKey || supabaseClient.supabaseAnonKey)
+    && !String(supabaseClient.supabaseServiceRoleKey || supabaseClient.supabaseAnonKey).includes('replace_with')
+);
 
 // ===== MIDDLEWARE =====
 app.use(express.json({ limit: '10mb' }));
@@ -53,6 +62,19 @@ app.use('/api/sales', require('./routes/sales.routes'));
 app.use('/api/alerts', require('./routes/alerts.routes'));
 app.use('/api/reports', require('./routes/reports.routes'));
 
+// ===== STATIC FRONTEND =====
+const frontendRoot = path.join(__dirname, '..');
+app.use(express.static(frontendRoot));
+
+app.get('/', (req, res) => {
+    const indexPath = path.join(frontendRoot, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send('Frontend entry point not found');
+    }
+});
+
 // ===== HEALTH CHECK =====
 app.get('/api/health', (req, res) => {
     res.json({
@@ -86,13 +108,28 @@ app.use((req, res) => {
 
 // ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
+const HOST = process.env.HOST || '0.0.0.0';
+const getLocalIp = () => {
+    const nets = os.networkInterfaces();
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name] || []) {
+            if (net.family === 'IPv4' && !net.internal) {
+                return net.address;
+            }
+        }
+    }
+    return 'localhost';
+};
+
+const server = app.listen(PORT, HOST, () => {
+    const localIp = getLocalIp();
     console.log(`
 ╔════════════════════════════════════════╗
 ║    AgroDrop API Server Started        ║
 ║    Environment: ${process.env.NODE_ENV || 'development'.padEnd(18)}║
 ║    Port: ${PORT.toString().padEnd(27)}║
 ║    URL: http://localhost:${PORT}     ║
+║    LAN: http://${localIp}:${PORT}     ║
 ╚════════════════════════════════════════╝
   `);
 });

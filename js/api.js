@@ -3,9 +3,13 @@
    Replaces localStorage with backend API calls
    ============================================= */
 
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://agrodrop.pages.dev/api';
+const API_BASE_URL = (() => {
+    if (typeof window !== 'undefined' && window.location) {
+        return `${window.location.origin}/api`;
+    }
+
+    return '/api';
+})();
 
 const API = {
     token: localStorage.getItem('agrodrop_token') || null,

@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 
+const DEFAULT_JWT_SECRET = process.env.JWT_SECRET || 'agrodrop-dev-secret';
+
 const authenticate = (req, res, next) => {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -10,7 +12,7 @@ const authenticate = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+        const decoded = jwt.verify(token, DEFAULT_JWT_SECRET);
         req.user = decoded;
         return next();
     } catch (error) {
