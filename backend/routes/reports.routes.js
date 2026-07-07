@@ -138,6 +138,21 @@ router.get('/expiry', authenticate, async (req, res) => {
             return res.json({ status: 'success', summary: { expired: expired.length, expiringSoon: expiringSoon.length, valid: valid.length }, data: { expired, expiringSoon, valid } });
         }
 
+        if (!req.app.locals.dbConnected) {
+            const medicines = fallbackStore.listItems('medicines');
+            const today = new Date();
+            const expired = medicines.filter((m) => new Date(m.expiry_date) < today);
+            const expiringSoon = medicines.filter((m) => {
+                const days = Math.ceil((new Date(m.expiry_date) - today) / (1000 * 60 * 60 * 24));
+                return days > 0 && days <= 30;
+            });
+            const valid = medicines.filter((m) => {
+                const days = Math.ceil((new Date(m.expiry_date) - today) / (1000 * 60 * 60 * 24));
+                return days > 30;
+            });
+            return res.json({ status: 'success', summary: { expired: expired.length, expiringSoon: expiringSoon.length, valid: valid.length }, data: { expired, expiringSoon, valid } });
+        }
+
         const medicines = await Medicine.find({});
         const today = new Date();
 
@@ -190,6 +205,21 @@ router.get('/suppliers', authenticate, async (req, res) => {
                     totalQty,
                     totalSpent
                 };
+            }).sort((a, b) => b.totalSpent - a.totalSpent);
+
+            const totalSpent = supplierStats.reduce((sum, s) => sum + Number(s.totalSpent || 0), 0);
+            return res.json({ status: 'success', summary: { totalSuppliers: suppliers.length, totalPurchases: purchases.length, totalSpent }, suppliers: supplierStats });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const suppliers = fallbackStore.listItems('suppliers').filter((s) => s.is_active);
+            const purchases = fallbackStore.listItems('purchases');
+
+            const supplierStats = suppliers.map((supplier) => {
+                const supplierPurchases = purchases.filter((p) => String(p.supplier_id) === String(supplier.supplier_id));
+                const totalQty = supplierPurchases.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+                const totalSpent = supplierPurchases.reduce((sum, p) => sum + Number(p.total_cost || 0), 0);
+                return { ...supplier, purchaseCount: supplierPurchases.length, totalQty, totalSpent };
             }).sort((a, b) => b.totalSpent - a.totalSpent);
 
             const totalSpent = supplierStats.reduce((sum, s) => sum + Number(s.totalSpent || 0), 0);

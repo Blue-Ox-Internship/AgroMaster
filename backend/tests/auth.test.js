@@ -165,7 +165,8 @@ describe('Auth Routes', () => {
             const res = await request(testApp)
                 .get('/api/auth/me');
 
-            expect(res.status).toBe(404);
+            expect(res.status).toBe(401);
+            expect(res.body.message).toBe('Authentication required');
         });
     });
 

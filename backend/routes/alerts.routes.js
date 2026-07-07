@@ -112,6 +112,38 @@ router.get('/:id', authenticate, idParamRule, async (req, res) => {
     }
 });
 
+// Mark all alerts as read
+router.patch('/all/read', authenticate, async (req, res) => {
+    try {
+        if (supabaseConfigured) {
+            const { error } = await supabaseClient.from('alerts').update({ status: 'read', read_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('status', 'unread');
+            if (error) throw error;
+            return res.json({ status: 'success', message: 'All alerts marked as read' });
+        }
+
+        if (!req.app.locals.dbConnected) {
+            const alerts = fallbackStore.listItems('alerts');
+            alerts.forEach((a) => fallbackStore.updateItem('alerts', a.alert_id, { status: 'read' }));
+            return res.json({ status: 'success', message: 'All alerts marked as read' });
+        }
+
+        await Alert.updateMany(
+            { status: 'unread' },
+            { status: 'read', read_at: Date.now() }
+        );
+
+        res.json({
+            status: 'success',
+            message: 'All alerts marked as read'
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: error.message
+        });
+    }
+});
+
 // Mark alert as read
 router.patch('/:id/read', authenticate, idParamRule, async (req, res) => {
     try {
@@ -148,38 +180,6 @@ router.patch('/:id/read', authenticate, idParamRule, async (req, res) => {
             status: 'success',
             message: 'Alert marked as read',
             alert
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            message: error.message
-        });
-    }
-});
-
-// Mark all alerts as read
-router.patch('/all/read', authenticate, async (req, res) => {
-    try {
-        if (supabaseConfigured) {
-            const { error } = await supabaseClient.from('alerts').update({ status: 'read', read_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('status', 'unread');
-            if (error) throw error;
-            return res.json({ status: 'success', message: 'All alerts marked as read' });
-        }
-
-        if (!req.app.locals.dbConnected) {
-            const alerts = fallbackStore.listItems('alerts');
-            alerts.forEach((a) => fallbackStore.updateItem('alerts', a.alert_id, { status: 'read' }));
-            return res.json({ status: 'success', message: 'All alerts marked as read' });
-        }
-
-        await Alert.updateMany(
-            { status: 'unread' },
-            { status: 'read', read_at: Date.now() }
-        );
-
-        res.json({
-            status: 'success',
-            message: 'All alerts marked as read'
         });
     } catch (error) {
         res.status(500).json({

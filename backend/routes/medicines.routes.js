@@ -241,7 +241,10 @@ router.delete('/:id', authenticate, idParamRule, async (req, res) => {
 
         if (!req.app.locals.dbConnected) {
             const deleted = fallbackStore.deleteItem('medicines', req.params.id);
-            return res.json({ status: 'success', message: deleted ? 'Medicine deleted successfully' : 'Medicine not found' });
+            if (!deleted) {
+                return res.status(404).json({ status: 'error', message: 'Medicine not found' });
+            }
+            return res.json({ status: 'success', message: 'Medicine deleted successfully' });
         }
 
         const medicine = await Medicine.findByIdAndDelete(req.params.id);

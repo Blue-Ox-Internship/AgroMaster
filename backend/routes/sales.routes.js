@@ -92,6 +92,13 @@ router.get('/stats/daily', authenticate, async (req, res) => {
             return res.json({ status: 'success', stats: { todayTransactions: (data || []).length, todayRevenue: totalToday } });
         }
 
+        if (!req.app.locals.dbConnected) {
+            const today = new Date().toISOString().split('T')[0];
+            const todaySales = fallbackStore.listItems('sales').filter((s) => s.sale_date === today);
+            const totalToday = todaySales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
+            return res.json({ status: 'success', stats: { todayTransactions: todaySales.length, todayRevenue: totalToday } });
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
