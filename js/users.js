@@ -48,7 +48,7 @@ function initUsers() {
   loadUsers();
   document.getElementById('add-user-btn').addEventListener('click', openAddModal);
   document.getElementById('save-user-btn').addEventListener('click', saveUser);
-  document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 150));
+  document.getElementById('search-input').addEventListener('input', renderTable);
   document.getElementById('role-filter').addEventListener('change', renderTable);
 }
 

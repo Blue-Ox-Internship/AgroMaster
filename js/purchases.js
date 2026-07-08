@@ -39,7 +39,7 @@
   document.getElementById('pur-date').value = App.today();
   document.getElementById('add-purchase-btn').addEventListener('click', openPurModal);
   document.getElementById('save-pur-btn').addEventListener('click', savePurchase);
-  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 150));
+  document.getElementById('search-input').addEventListener('input', applyFilters);
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadPurchaseStats();
   loadPurchases();

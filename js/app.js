@@ -263,3 +263,6 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') Modal.closeAll();
 });
+
+// ---- Seed database (runs here so App is available for alert generation) ----
+seedDatabase();

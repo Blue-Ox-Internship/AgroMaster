@@ -50,7 +50,7 @@ function initSuppliers() {
   loadSuppliers();
   document.getElementById('add-sup-btn').addEventListener('click', openAddModal);
   document.getElementById('save-sup-btn').addEventListener('click', saveSupplier);
-  document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 150));
+  document.getElementById('search-input').addEventListener('input', renderTable);
 }
 
 function loadSuppliers() { allSups = DB.getSuppliers(); renderTable(); }

@@ -62,7 +62,7 @@ function initInventory() {
   loadMeds();
   document.getElementById('add-med-btn').addEventListener('click', () => openAddModal());
   document.getElementById('save-med-btn').addEventListener('click', saveMedicine);
-  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 150));
+  document.getElementById('search-input').addEventListener('input', applyFilters);
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
 }

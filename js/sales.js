@@ -39,7 +39,7 @@
   document.getElementById('sale-date').value = App.today();
   document.getElementById('add-sale-btn').addEventListener('click', openSaleModal);
   document.getElementById('save-sale-btn').addEventListener('click', saveSale);
-  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 150));
+  document.getElementById('search-input').addEventListener('input', applyFilters);
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadSalesStats();
   loadSales();

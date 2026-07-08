@@ -567,5 +567,4 @@ function seedDatabase() {
     console.log('AgroDrop database seeded successfully.');
 }
 
-// Auto-seed on load
-seedDatabase();
+// seedDatabase() called from app.js after App is ready
