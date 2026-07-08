@@ -14,7 +14,7 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Search purchases..." />
+          <input type="search" id="search-input" placeholder="Search purchases..." enterkeyhint="search" />
         </div>
         <input type="date" class="filter-select" id="date-filter" style="min-width:150px;" />
         <button class="btn btn-primary" id="add-purchase-btn"><i class="fas fa-plus"></i> Record Purchase</button>
@@ -39,7 +39,7 @@
   document.getElementById('pur-date').value = App.today();
   document.getElementById('add-purchase-btn').addEventListener('click', openPurModal);
   document.getElementById('save-pur-btn').addEventListener('click', savePurchase);
-  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 150));
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadPurchaseStats();
   loadPurchases();
@@ -83,7 +83,7 @@ function renderTable() {
   const tbody = document.getElementById('pur-table');
   document.getElementById('pur-count').textContent = `${filteredPurchases.length} records`;
   if (!page.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-shopping-cart"></i><h3>No purchases found</h3><p>Record a new purchase to get started.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-shopping-cart"></i><h3>No purchases found</h3></div></td></tr>`;
     document.getElementById('pagination').innerHTML = ''; return;
   }
   tbody.innerHTML = page.map((p, i) => {

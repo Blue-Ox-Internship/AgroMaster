@@ -2,9 +2,11 @@
     "name": "agrodrop-project",
     "version": "1.0.0",
     "private": true,
-    "description": "AgroDrop full-stack project entrypoint",
+    "description": "AgroDrop Livestock Medicine Inventory System",
     "scripts": {
         "start": "node server.js",
-        "dev": "node server.js"
+        "dev": "node server.js",
+        "build": "cd backend && npm install",
+        "seed": "cd backend && npm run seed"
     }
 }

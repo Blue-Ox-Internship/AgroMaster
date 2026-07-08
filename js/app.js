@@ -77,6 +77,15 @@ const App = {
         return new Date().toISOString().split('T')[0];
     },
 
+    // ---- Utility ----
+    debounce(fn, delay) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    },
+
     // ---- Sidebar Population ----
     populateSidebar() {
         const user = this.getCurrentUser();

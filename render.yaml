@@ -1,0 +1,36 @@
+# Render Blueprint - AgroDrop Deployment
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API + Frontend (combined service)
+  - type: web
+    name: agrodrop-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && cd backend && npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: DB_NAME
+        value: agrodrop
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRY
+        value: 7d
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: FRONTEND_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

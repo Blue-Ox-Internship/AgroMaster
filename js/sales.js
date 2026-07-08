@@ -14,7 +14,7 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Search sales..." />
+          <input type="search" id="search-input" placeholder="Search sales..." enterkeyhint="search" />
         </div>
         <input type="date" class="filter-select" id="date-filter" style="min-width:150px;" />
         <button class="btn btn-primary" id="add-sale-btn"><i class="fas fa-plus"></i> Record Sale</button>
@@ -39,7 +39,7 @@
   document.getElementById('sale-date').value = App.today();
   document.getElementById('add-sale-btn').addEventListener('click', openSaleModal);
   document.getElementById('save-sale-btn').addEventListener('click', saveSale);
-  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 150));
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadSalesStats();
   loadSales();
@@ -84,7 +84,7 @@ function renderTable() {
   const tbody = document.getElementById('sales-table');
   document.getElementById('sale-count').textContent = `${filteredSales.length} records`;
   if (!page.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-receipt"></i><h3>No sales found</h3><p>Try adjusting your search or record a new sale.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-receipt"></i><h3>No sales found</h3></div></td></tr>`;
     document.getElementById('pagination').innerHTML = ''; return;
   }
   tbody.innerHTML = page.map((s, i) => {

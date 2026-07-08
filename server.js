@@ -10,6 +10,12 @@ const child = spawn(process.execPath, [backendServer], {
     env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'development' }
 });
 
+['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach((signal) => {
+    process.on(signal, () => {
+        child.kill(signal);
+    });
+});
+
 child.on('exit', (code, signal) => {
     if (signal) {
         process.kill(process.pid, signal);

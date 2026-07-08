@@ -13,7 +13,7 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Search suppliers..." />
+          <input type="search" id="search-input" placeholder="Search suppliers..." enterkeyhint="search" />
         </div>
         <button class="btn btn-primary" id="add-sup-btn"><i class="fas fa-plus"></i> Add Supplier</button>
       </div>
@@ -50,7 +50,7 @@ function initSuppliers() {
   loadSuppliers();
   document.getElementById('add-sup-btn').addEventListener('click', openAddModal);
   document.getElementById('save-sup-btn').addEventListener('click', saveSupplier);
-  document.getElementById('search-input').addEventListener('input', renderTable);
+  document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 150));
 }
 
 function loadSuppliers() { allSups = DB.getSuppliers(); renderTable(); }
@@ -66,7 +66,7 @@ function renderTable() {
   document.getElementById('sup-count').textContent = `${filtered.length} supplier${filtered.length !== 1 ? 's' : ''}`;
   const tbody = document.getElementById('sup-table');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-truck"></i><h3>No suppliers found</h3><p>Try adjusting your search or add a new supplier.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-truck"></i><h3>No suppliers found</h3></div></td></tr>`;
     return;
   }
   const purchases = DB.getPurchases();

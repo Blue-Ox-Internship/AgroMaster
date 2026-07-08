@@ -216,7 +216,7 @@ const DB = {
 };
 
 /* ---- Seed Data ---- */
-const SEED_VERSION = 'v3'; // bumped – added 8 new suppliers
+const SEED_VERSION = 'v4'; // bumped – added 15 veterinary medicines, purchases, sales
 
 function seedDatabase() {
     if (localStorage.getItem(DB.keys.initialized) === SEED_VERSION) return;
@@ -419,6 +419,96 @@ function seedDatabase() {
             manufacturer: 'Elanco', batch_number: 'BT2024010', expiry_date: d(14),
             quantity: 12, unit_price: 65000, description: 'NSAID for pain and inflammation management in cattle and pigs.',
             created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_011', medicine_name: 'Tylosin 200mg/ml', category: 'Antibiotic',
+            manufacturer: 'Elanco', batch_number: 'BT2025001', expiry_date: d(22),
+            quantity: 35, unit_price: 48000, description: 'Macrolide antibiotic for respiratory and enteric infections in swine and poultry.',
+            created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_012', medicine_name: 'Enrofloxacin 10%', category: 'Antibiotic',
+            manufacturer: 'Bayer', batch_number: 'BT2025002', expiry_date: d(16),
+            quantity: 18, unit_price: 52000, description: 'Fluoroquinolone for respiratory and urinary tract infections in livestock.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_013', medicine_name: 'Amoxicillin 15% LA', category: 'Antibiotic',
+            manufacturer: 'Norbrook', batch_number: 'BT2025003', expiry_date: d(20),
+            quantity: 40, unit_price: 38000, description: 'Long-acting penicillin for wound infections and respiratory cases.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_014', medicine_name: 'Sulphadiazine/Trimethoprim 48%', category: 'Antibiotic',
+            manufacturer: 'Intervet', batch_number: 'BT2025004', expiry_date: d(14),
+            quantity: 22, unit_price: 25000, description: 'Potentiated sulfonamide for broad-spectrum bacterial and coccidial infections.',
+            created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_015', medicine_name: 'Cloxacillin 500mg Intramammary', category: 'Antibiotic',
+            manufacturer: 'Norbrook', batch_number: 'BT2025005', expiry_date: d(18),
+            quantity: 15, unit_price: 45000, description: 'Intramammary infusion for mastitis treatment in lactating dairy cows.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_016', medicine_name: 'Triclabendazole 10%', category: 'Antiparasitic',
+            manufacturer: 'Kepro', batch_number: 'BT2025006', expiry_date: d(24),
+            quantity: 10, unit_price: 32000, description: 'Flukicide for treatment of liver fluke (Fasciola) in cattle and sheep.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_017', medicine_name: 'Deltamethrin 1% Pour-On', category: 'Pesticide',
+            manufacturer: 'Bayer', batch_number: 'BT2025007', expiry_date: d(12),
+            quantity: 14, unit_price: 62000, description: 'Synthetic pyrethroid for control of ticks, flies and lice on cattle.',
+            created_at: dp(3)
+        },
+        {
+            medicine_id: 'med_018', medicine_name: 'Iron Dextran 20%', category: 'Supplement',
+            manufacturer: 'Elanco', batch_number: 'BT2025008', expiry_date: d(30),
+            quantity: 50, unit_price: 12000, description: 'Injectable iron supplement for prevention of piglet anaemia.',
+            created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_019', medicine_name: 'Vitamin B Complex', category: 'Supplement',
+            manufacturer: 'Kepro', batch_number: 'BT2025009', expiry_date: d(18),
+            quantity: 28, unit_price: 8500, description: 'B-complex vitamins for metabolic support and appetite stimulation.',
+            created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_020', medicine_name: 'Ketoprofen 10%', category: 'Anti-inflammatory',
+            manufacturer: 'Norbrook', batch_number: 'BT2025010', expiry_date: d(14),
+            quantity: 20, unit_price: 42000, description: 'NSAID for pain relief, fever reduction and inflammation in livestock.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_021', medicine_name: 'Flunixin Meglumine 5%', category: 'Anti-inflammatory',
+            manufacturer: 'Intervet', batch_number: 'BT2025011', expiry_date: d(10),
+            quantity: 6, unit_price: 55000, description: 'Potent NSAID for endotoxemia, mastitis and musculoskeletal pain.',
+            created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_022', medicine_name: 'Newcastle Disease Vaccine (LaSota)', category: 'Vaccine',
+            manufacturer: 'Intervet', batch_number: 'BT2025012', expiry_date: d(6),
+            quantity: 100, unit_price: 5000, description: 'Live vaccine for prevention of Newcastle disease in poultry.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_023', medicine_name: 'Oxytocin 10 IU/ml', category: 'Other',
+            manufacturer: 'Bayer', batch_number: 'BT2025013', expiry_date: d(8),
+            quantity: 9, unit_price: 15000, description: 'Hormonal injectable for uterine contractions and milk letdown in cattle.',
+            created_at: dp(1)
+        },
+        {
+            medicine_id: 'med_024', medicine_name: 'Colistin 10% Oral Powder', category: 'Antibiotic',
+            manufacturer: 'Kepro', batch_number: 'BT2025014', expiry_date: d(20),
+            quantity: 33, unit_price: 28000, description: 'Polypeptide antibiotic for enteric infections, especially E. coli in poultry.',
+            created_at: dp(2)
+        },
+        {
+            medicine_id: 'med_025', medicine_name: 'Praziquantel 50mg Tablets', category: 'Antiparasitic',
+            manufacturer: 'Elanco', batch_number: 'BT2025015', expiry_date: d(36),
+            quantity: 2, unit_price: 7500, description: 'Oral treatment for tapeworm infections in dogs, cats and poultry.',
+            created_at: dp(1)
         }
     ];
     DB.saveMedicines(medicines);
@@ -432,7 +522,13 @@ function seedDatabase() {
         { purchase_id: 'pur_005', supplier_id: 'sup_004', medicine_id: 'med_005', quantity: 80, buying_price: 17000, purchase_date: dp(2) },
         { purchase_id: 'pur_006', supplier_id: 'sup_002', medicine_id: 'med_006', quantity: 25, buying_price: 11000, purchase_date: dp(1) },
         { purchase_id: 'pur_007', supplier_id: 'sup_003', medicine_id: 'med_007', quantity: 30, buying_price: 45000, purchase_date: dp(4) },
-        { purchase_id: 'pur_008', supplier_id: 'sup_004', medicine_id: 'med_010', quantity: 15, buying_price: 52000, purchase_date: dp(1) }
+        { purchase_id: 'pur_008', supplier_id: 'sup_004', medicine_id: 'med_010', quantity: 15, buying_price: 52000, purchase_date: dp(1) },
+        { purchase_id: 'pur_009', supplier_id: 'sup_001', medicine_id: 'med_011', quantity: 40, buying_price: 38000, purchase_date: dp(1) },
+        { purchase_id: 'pur_010', supplier_id: 'sup_003', medicine_id: 'med_013', quantity: 50, buying_price: 30000, purchase_date: dp(2) },
+        { purchase_id: 'pur_011', supplier_id: 'sup_002', medicine_id: 'med_018', quantity: 60, buying_price: 8000, purchase_date: dp(1) },
+        { purchase_id: 'pur_012', supplier_id: 'sup_004', medicine_id: 'med_022', quantity: 120, buying_price: 3500, purchase_date: dp(2) },
+        { purchase_id: 'pur_013', supplier_id: 'sup_003', medicine_id: 'med_017', quantity: 20, buying_price: 50000, purchase_date: dp(3) },
+        { purchase_id: 'pur_014', supplier_id: 'sup_002', medicine_id: 'med_020', quantity: 25, buying_price: 34000, purchase_date: dp(2) }
     ];
     DB.savePurchases(purchases);
 
@@ -452,7 +548,15 @@ function seedDatabase() {
         { sale_id: 'sal_007', medicine_id: 'med_003', quantity: 3, selling_price: 42000, total_amount: 126000, sale_date: pd(7) },
         { sale_id: 'sal_008', medicine_id: 'med_005', quantity: 8, selling_price: 22000, total_amount: 176000, sale_date: pd(10) },
         { sale_id: 'sal_009', medicine_id: 'med_009', quantity: 2, selling_price: 38000, total_amount: 76000, sale_date: pd(14) },
-        { sale_id: 'sal_010', medicine_id: 'med_010', quantity: 2, selling_price: 65000, total_amount: 130000, sale_date: pd(20) }
+        { sale_id: 'sal_010', medicine_id: 'med_010', quantity: 2, selling_price: 65000, total_amount: 130000, sale_date: pd(20) },
+        { sale_id: 'sal_011', medicine_id: 'med_012', quantity: 2, selling_price: 52000, total_amount: 104000, sale_date: pd(1) },
+        { sale_id: 'sal_012', medicine_id: 'med_014', quantity: 5, selling_price: 25000, total_amount: 125000, sale_date: pd(2) },
+        { sale_id: 'sal_013', medicine_id: 'med_019', quantity: 8, selling_price: 8500, total_amount: 68000, sale_date: pd(3) },
+        { sale_id: 'sal_014', medicine_id: 'med_022', quantity: 25, selling_price: 5000, total_amount: 125000, sale_date: pd(4) },
+        { sale_id: 'sal_015', medicine_id: 'med_011', quantity: 4, selling_price: 48000, total_amount: 192000, sale_date: pd(6) },
+        { sale_id: 'sal_016', medicine_id: 'med_020', quantity: 3, selling_price: 42000, total_amount: 126000, sale_date: pd(8) },
+        { sale_id: 'sal_017', medicine_id: 'med_016', quantity: 2, selling_price: 32000, total_amount: 64000, sale_date: pd(12) },
+        { sale_id: 'sal_018', medicine_id: 'med_018', quantity: 10, selling_price: 12000, total_amount: 120000, sale_date: pd(15) }
     ];
     DB.saveSales(sales);
 

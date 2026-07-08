@@ -6,7 +6,7 @@
   const user = App.requireAuth();
   if (!user) return;
 
-  renderSidebar('Dashboard', 'Welcome back, ' + user.full_name.split(' ')[0] + ' 👋');
+  renderSidebar('Dashboard', 'Welcome, ' + user.full_name.split(' ')[0]);
 
   // Build page content and mount it
   const pb = document.getElementById('page-body');
@@ -15,7 +15,7 @@
       <div class="stats-grid" id="stats-grid"></div>
       <div class="charts-grid" style="margin-bottom:20px;">
         <div class="chart-card">
-          <div class="card-header"><h3><i class="fas fa-chart-line"></i> Sales Trend (Last 30 Days)</h3></div>
+          <div class="card-header"><h3><i class="fas fa-chart-line"></i> Sales Trend</h3></div>
           <div class="chart-wrapper" style="height:260px;"><canvas id="salesChart"></canvas></div>
         </div>
         <div class="chart-card">
@@ -69,24 +69,24 @@ function loadStats() {
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card green" onclick="window.location.href='inventory.html'" style="cursor:pointer">
       <div class="stat-icon green"><i class="fas fa-pills"></i></div>
-      <div class="stat-info"><h3>${meds.length}</h3><p>Total Medicines</p><span class="stat-change up"><i class="fas fa-boxes"></i> In stock</span></div>
+      <div class="stat-info"><h3>${meds.length}</h3><p>Medicines</p><span class="stat-change up"><i class="fas fa-boxes"></i> In stock</span></div>
     </div>
     <div class="stat-card orange" onclick="window.location.href='inventory.html'" style="cursor:pointer">
       <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
-      <div class="stat-info"><h3>${lowStock}</h3><p>Low Stock Items</p>
-        <span class="stat-change ${lowStock > 0 ? 'down' : 'up'}">${lowStock > 0 ? '<i class="fas fa-arrow-down"></i> Needs reorder' : '<i class="fas fa-check"></i> All good'}</span>
+      <div class="stat-info"><h3>${lowStock}</h3><p>Low Stock</p>
+        <span class="stat-change ${lowStock > 0 ? 'down' : 'up'}">${lowStock > 0 ? '<i class="fas fa-arrow-down"></i> Reorder' : '<i class="fas fa-check"></i> Good'}</span>
       </div>
     </div>
     <div class="stat-card red" onclick="window.location.href='inventory.html'" style="cursor:pointer">
       <div class="stat-icon red"><i class="fas fa-calendar-times"></i></div>
-      <div class="stat-info"><h3>${expiringSoon}</h3><p>Expiring / Expired</p>
-        <span class="stat-change ${expiringSoon > 0 ? 'down' : 'up'}">${expiringSoon > 0 ? '<i class="fas fa-clock"></i> Attention needed' : '<i class="fas fa-check"></i> All valid'}</span>
+      <div class="stat-info"><h3>${expiringSoon}</h3><p>Expiring</p>
+        <span class="stat-change ${expiringSoon > 0 ? 'down' : 'up'}">${expiringSoon > 0 ? '<i class="fas fa-clock"></i> Check' : '<i class="fas fa-check"></i> Valid'}</span>
       </div>
     </div>
     <div class="stat-card blue" onclick="window.location.href='sales.html'" style="cursor:pointer">
       <div class="stat-icon blue"><i class="fas fa-cash-register"></i></div>
-      <div class="stat-info"><h3 style="font-size:18px;">${App.formatCurrency(todaySalesTotal)}</h3><p>Today's Sales</p>
-        <span class="stat-change up"><i class="fas fa-shopping-bag"></i> ${DB.getTodaySales().length} transactions</span>
+      <div class="stat-info"><h3 style="font-size:18px;">${App.formatCurrency(todaySalesTotal)}</h3><p>Today</p>
+        <span class="stat-change up"><i class="fas fa-shopping-bag"></i> ${DB.getTodaySales().length} sales</span>
       </div>
     </div>`;
 }
@@ -132,7 +132,7 @@ function loadAlerts() {
   const panel = document.getElementById('alerts-panel');
   if (!panel) return;
   if (!alerts.length) {
-    panel.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle" style="color:#66bb6a;font-size:40px;"></i><h3>All Clear!</h3><p>No active alerts at this time.</p></div>`;
+    panel.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle" style="color:#66bb6a;font-size:40px;"></i><h3>All Clear!</h3></div>`;
     return;
   }
   const typeColor = { low_stock: 'warning', expiry: 'warning', expired: 'danger' };

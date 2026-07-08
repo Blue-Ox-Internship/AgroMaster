@@ -13,7 +13,7 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Search medicines..." />
+          <input type="search" id="search-input" placeholder="Search medicines..." enterkeyhint="search" />
         </div>
         <select class="filter-select" id="category-filter">
           <option value="">All Categories</option>
@@ -62,7 +62,7 @@ function initInventory() {
   loadMeds();
   document.getElementById('add-med-btn').addEventListener('click', () => openAddModal());
   document.getElementById('save-med-btn').addEventListener('click', saveMedicine);
-  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 150));
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
 }
@@ -92,7 +92,7 @@ function renderTable() {
   const tbody = document.getElementById('meds-table');
   document.getElementById('med-count').textContent = `${filteredMeds.length} of ${allMeds.length} medicines`;
   if (!pageMeds.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-search"></i><h3>No medicines found</h3><p>Try adjusting your search or filters.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-search"></i><h3>No medicines found</h3></div></td></tr>`;
     document.getElementById('pagination').innerHTML = '';
     return;
   }

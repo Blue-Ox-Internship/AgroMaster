@@ -13,7 +13,7 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Search users..." />
+          <input type="search" id="search-input" placeholder="Search users..." enterkeyhint="search" />
         </div>
         <select class="filter-select" id="role-filter">
           <option value="">All Roles</option>
@@ -48,7 +48,7 @@ function initUsers() {
   loadUsers();
   document.getElementById('add-user-btn').addEventListener('click', openAddModal);
   document.getElementById('save-user-btn').addEventListener('click', saveUser);
-  document.getElementById('search-input').addEventListener('input', renderTable);
+  document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 150));
   document.getElementById('role-filter').addEventListener('change', renderTable);
 }
 
@@ -66,7 +66,7 @@ function renderTable() {
   document.getElementById('user-count').textContent = `${filtered.length} user${filtered.length !== 1 ? 's' : ''}`;
   const tbody = document.getElementById('users-table');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-users"></i><h3>No users found</h3><p>Try adjusting your search or add a new user.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-users"></i><h3>No users found</h3></div></td></tr>`;
     return;
   }
   const roleClass = { 'Administrator': 'role-admin', 'Store Manager': 'role-manager', 'Sales Attendant': 'role-attendant' };
