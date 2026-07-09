@@ -39,7 +39,7 @@
             <thead>
               <tr>
                 <th>#</th><th>Medicine Name</th><th>Category</th><th>Batch No.</th>
-                <th>Expiry Date</th><th>Quantity</th><th>Unit Price</th><th>Status</th><th>Actions</th>
+                <th>Expiry Date</th><th>Quantity</th><th>Unit Price</th><th>Stock Value</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody id="meds-table"></tbody>
@@ -92,13 +92,14 @@ function renderTable() {
   const tbody = document.getElementById('meds-table');
   document.getElementById('med-count').textContent = `${filteredMeds.length} of ${allMeds.length} medicines`;
   if (!pageMeds.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-search"></i><h3>No medicines found</h3></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fas fa-search"></i><h3>No medicines found</h3></div></td></tr>`;
     document.getElementById('pagination').innerHTML = '';
     return;
   }
   tbody.innerHTML = pageMeds.map((m, i) => {
     const status = getStatus(m);
     const stockLevel = m.quantity > 30 ? 'high' : m.quantity > 10 ? 'medium' : 'low';
+    const stockValue = m.quantity * m.unit_price;
     return `
       <tr>
         <td style="color:#9e9e9e;font-size:12px;">${start + i + 1}</td>
@@ -113,6 +114,7 @@ function renderTable() {
           </div>
         </td>
         <td class="ugx">${App.formatCurrency(m.unit_price)}</td>
+        <td class="ugx"><strong>${App.formatCurrency(stockValue)}</strong></td>
         <td>${status}</td>
         <td>
           <div style="display:flex;gap:6px;">
