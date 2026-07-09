@@ -1893,17 +1893,59 @@ tbody td {
 
 @media (max-width: 480px) {
     .login-container {
-        padding: 32px 24px;
-        border-radius: 16px;
+        padding: 28px 20px;
+        border-radius: 14px;
+    }
+
+    .login-logo {
+        margin-bottom: 24px;
     }
 
     .login-logo h1 {
-        font-size: 22px;
+        font-size: 20px;
+    }
+
+    .login-logo p {
+        font-size: 12px;
+    }
+
+    .login-logo .logo-icon {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 12px;
     }
 
     .login-logo .logo-icon svg {
-        width: 70px;
-        height: 58px;
+        width: 56px;
+        height: 46px;
+    }
+
+    .login-form .form-group {
+        margin-bottom: 14px;
+    }
+
+    .login-form input {
+        padding: 10px 12px 10px 38px;
+        font-size: 13px;
+    }
+
+    .login-form .input-wrap i {
+        left: 12px;
+        font-size: 14px;
+    }
+
+    .btn-login {
+        padding: 11px;
+        font-size: 14px;
+    }
+
+    .forgot-password a {
+        font-size: 12px;
+    }
+
+    .login-footer {
+        font-size: 11px;
+        margin-top: 18px;
     }
 
     .sidebar {
@@ -2084,6 +2126,45 @@ tbody td {
 
     tbody td {
         font-size: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .login-container {
+        padding: 20px 14px;
+    }
+
+    .login-logo .logo-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .login-logo .logo-icon svg {
+        width: 44px;
+        height: 36px;
+    }
+
+    .login-logo h1 {
+        font-size: 17px;
+    }
+
+    .login-logo p {
+        font-size: 10px;
+    }
+
+    .login-form input {
+        padding: 8px 10px 8px 32px;
+        font-size: 12px;
+    }
+
+    .login-form .input-wrap i {
+        left: 10px;
+        font-size: 12px;
+    }
+
+    .btn-login {
+        padding: 9px;
+        font-size: 13px;
     }
 }
 
