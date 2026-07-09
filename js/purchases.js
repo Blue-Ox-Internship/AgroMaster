@@ -27,7 +27,7 @@
         <div class="table-container">
           <table>
             <thead>
-              <tr><th>#</th><th>Medicine</th><th>Supplier</th><th>Qty Purchased</th><th>Buying Price</th><th>Total Cost</th><th>Purchase Date</th><th>Actions</th></tr>
+              <tr><th>Medicine</th><th>Supplier</th><th>Qty Purchased</th><th>Cost Per Unit</th><th>Total Cost</th><th>Purchase Date</th><th>Actions</th></tr>
             </thead>
             <tbody id="pur-table"></tbody>
           </table>
@@ -83,16 +83,15 @@ function renderTable() {
   const tbody = document.getElementById('pur-table');
   document.getElementById('pur-count').textContent = `${filteredPurchases.length} records`;
   if (!page.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-shopping-cart"></i><h3>No purchases found</h3></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-shopping-cart"></i><h3>No purchases found</h3></div></td></tr>`;
     document.getElementById('pagination').innerHTML = ''; return;
   }
   tbody.innerHTML = page.map((p, i) => {
     const med = meds.find(m => m.medicine_id === p.medicine_id);
     const sup = sups.find(s => s.supplier_id === p.supplier_id);
     return `<tr>
-      <td style="color:#9e9e9e;font-size:12px;">${start + i + 1}</td>
-      <td><strong>${med ? med.medicine_name : '—'}</strong></td>
-      <td>${sup ? sup.supplier_name : '—'}</td>
+      <td><strong>${med ? med.medicine_name : '—'}</strong><br><span style="font-size:11px;color:#757575;">${med ? med.category : ''}</span></td>
+      <td><strong>${sup ? sup.supplier_name : '—'}</strong><br><span style="font-size:11px;color:#757575;">${sup ? sup.phone : ''}</span></td>
       <td><strong>${p.quantity}</strong> units</td>
       <td>${App.formatCurrency(p.buying_price)}</td>
       <td><strong class="ugx" style="color:var(--primary)">${App.formatCurrency(p.quantity * p.buying_price)}</strong></td>

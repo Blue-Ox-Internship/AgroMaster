@@ -236,6 +236,25 @@ textarea {
     transform: translateY(0);
 }
 
+.forgot-password {
+    text-align: right;
+    margin-top: -12px;
+    margin-bottom: 16px;
+}
+
+.forgot-password a {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    color: var(--secondary);
+    text-decoration: underline;
+}
+
 .login-footer {
     text-align: center;
     margin-top: 24px;
