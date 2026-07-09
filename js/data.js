@@ -216,7 +216,7 @@ const DB = {
 };
 
 /* ---- Seed Data ---- */
-const SEED_VERSION = 'v4'; // bumped – added 15 veterinary medicines, purchases, sales
+const SEED_VERSION = 'v5'; // bumped – added 15 veterinary medicines, purchases, sales
 
 function seedDatabase() {
     if (localStorage.getItem(DB.keys.initialized) === SEED_VERSION) return;
@@ -360,156 +360,36 @@ function seedDatabase() {
     };
 
     const medicines = [
-        {
-            medicine_id: 'med_001', medicine_name: 'Oxytetracycline 20%', category: 'Antibiotic',
-            manufacturer: 'Norbrook', batch_number: 'BT2024001', expiry_date: d(18),
-            quantity: 45, unit_price: 35000, description: 'Broad-spectrum antibiotic for bacterial infections in cattle, poultry, and pigs.',
-            created_at: dp(3)
-        },
-        {
-            medicine_id: 'med_002', medicine_name: 'Albendazole 2.5%', category: 'Antiparasitic',
-            manufacturer: 'Elanco', batch_number: 'BT2024002', expiry_date: d(24),
-            quantity: 7, unit_price: 18000, description: 'Broad-spectrum anthelmintic for treatment of gastrointestinal worms.',
-            created_at: dp(3)
-        },
-        {
-            medicine_id: 'med_003', medicine_name: 'Ivermectin 1%', category: 'Antiparasitic',
-            manufacturer: 'Kepro', batch_number: 'BT2024003', expiry_date: d(12),
-            quantity: 30, unit_price: 42000, description: 'Injectable solution for treatment of internal and external parasites.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_004', medicine_name: 'Penicillin G 200MIU', category: 'Antibiotic',
-            manufacturer: 'Norbrook', batch_number: 'BT2024004', expiry_date: d(2),
-            quantity: 8, unit_price: 28000, description: 'Injectable penicillin for gram-positive bacterial infections.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_005', medicine_name: 'Tetracycline HCl Powder', category: 'Antibiotic',
-            manufacturer: 'Intervet', batch_number: 'BT2024005', expiry_date: d(15),
-            quantity: 60, unit_price: 22000, description: 'Soluble antibiotic powder for poultry and pigs via drinking water.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_006', medicine_name: 'Multivitamin ADE', category: 'Supplement',
-            manufacturer: 'Elanco', batch_number: 'BT2024006', expiry_date: d(20),
-            quantity: 5, unit_price: 15000, description: 'Vitamin A, D3 and E supplement for deficiency correction and immune support.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_007', medicine_name: 'Acaricide Dip (Amitraz 12.5%)', category: 'Pesticide',
-            manufacturer: 'Kepro', batch_number: 'BT2024007', expiry_date: d(-2),
-            quantity: 25, unit_price: 55000, description: 'Tick and mite control via cattle dipping or spraying.',
-            created_at: dp(4)
-        },
-        {
-            medicine_id: 'med_008', medicine_name: 'Dewormer Suspension (Levamisole)', category: 'Antiparasitic',
-            manufacturer: 'Intervet', batch_number: 'BT2024008', expiry_date: d(10),
-            quantity: 3, unit_price: 12000, description: 'Oral dewormer effective against roundworms and lungworms.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_009', medicine_name: 'Antifungal Spray (Clotrimazole)', category: 'Antifungal',
-            manufacturer: 'Norbrook', batch_number: 'BT2024009', expiry_date: d(16),
-            quantity: 20, unit_price: 38000, description: 'Topical antifungal for ringworm and skin fungal infections.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_010', medicine_name: 'Meloxicam 20mg/ml Injectable', category: 'Anti-inflammatory',
-            manufacturer: 'Elanco', batch_number: 'BT2024010', expiry_date: d(14),
-            quantity: 12, unit_price: 65000, description: 'NSAID for pain and inflammation management in cattle and pigs.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_011', medicine_name: 'Tylosin 200mg/ml', category: 'Antibiotic',
-            manufacturer: 'Elanco', batch_number: 'BT2025001', expiry_date: d(22),
-            quantity: 35, unit_price: 48000, description: 'Macrolide antibiotic for respiratory and enteric infections in swine and poultry.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_012', medicine_name: 'Enrofloxacin 10%', category: 'Antibiotic',
-            manufacturer: 'Bayer', batch_number: 'BT2025002', expiry_date: d(16),
-            quantity: 18, unit_price: 52000, description: 'Fluoroquinolone for respiratory and urinary tract infections in livestock.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_013', medicine_name: 'Amoxicillin 15% LA', category: 'Antibiotic',
-            manufacturer: 'Norbrook', batch_number: 'BT2025003', expiry_date: d(20),
-            quantity: 40, unit_price: 38000, description: 'Long-acting penicillin for wound infections and respiratory cases.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_014', medicine_name: 'Sulphadiazine/Trimethoprim 48%', category: 'Antibiotic',
-            manufacturer: 'Intervet', batch_number: 'BT2025004', expiry_date: d(14),
-            quantity: 22, unit_price: 25000, description: 'Potentiated sulfonamide for broad-spectrum bacterial and coccidial infections.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_015', medicine_name: 'Cloxacillin 500mg Intramammary', category: 'Antibiotic',
-            manufacturer: 'Norbrook', batch_number: 'BT2025005', expiry_date: d(18),
-            quantity: 15, unit_price: 45000, description: 'Intramammary infusion for mastitis treatment in lactating dairy cows.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_016', medicine_name: 'Triclabendazole 10%', category: 'Antiparasitic',
-            manufacturer: 'Kepro', batch_number: 'BT2025006', expiry_date: d(24),
-            quantity: 10, unit_price: 32000, description: 'Flukicide for treatment of liver fluke (Fasciola) in cattle and sheep.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_017', medicine_name: 'Deltamethrin 1% Pour-On', category: 'Pesticide',
-            manufacturer: 'Bayer', batch_number: 'BT2025007', expiry_date: d(12),
-            quantity: 14, unit_price: 62000, description: 'Synthetic pyrethroid for control of ticks, flies and lice on cattle.',
-            created_at: dp(3)
-        },
-        {
-            medicine_id: 'med_018', medicine_name: 'Iron Dextran 20%', category: 'Supplement',
-            manufacturer: 'Elanco', batch_number: 'BT2025008', expiry_date: d(30),
-            quantity: 50, unit_price: 12000, description: 'Injectable iron supplement for prevention of piglet anaemia.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_019', medicine_name: 'Vitamin B Complex', category: 'Supplement',
-            manufacturer: 'Kepro', batch_number: 'BT2025009', expiry_date: d(18),
-            quantity: 28, unit_price: 8500, description: 'B-complex vitamins for metabolic support and appetite stimulation.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_020', medicine_name: 'Ketoprofen 10%', category: 'Anti-inflammatory',
-            manufacturer: 'Norbrook', batch_number: 'BT2025010', expiry_date: d(14),
-            quantity: 20, unit_price: 42000, description: 'NSAID for pain relief, fever reduction and inflammation in livestock.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_021', medicine_name: 'Flunixin Meglumine 5%', category: 'Anti-inflammatory',
-            manufacturer: 'Intervet', batch_number: 'BT2025011', expiry_date: d(10),
-            quantity: 6, unit_price: 55000, description: 'Potent NSAID for endotoxemia, mastitis and musculoskeletal pain.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_022', medicine_name: 'Newcastle Disease Vaccine (LaSota)', category: 'Vaccine',
-            manufacturer: 'Intervet', batch_number: 'BT2025012', expiry_date: d(6),
-            quantity: 100, unit_price: 5000, description: 'Live vaccine for prevention of Newcastle disease in poultry.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_023', medicine_name: 'Oxytocin 10 IU/ml', category: 'Other',
-            manufacturer: 'Bayer', batch_number: 'BT2025013', expiry_date: d(8),
-            quantity: 9, unit_price: 15000, description: 'Hormonal injectable for uterine contractions and milk letdown in cattle.',
-            created_at: dp(1)
-        },
-        {
-            medicine_id: 'med_024', medicine_name: 'Colistin 10% Oral Powder', category: 'Antibiotic',
-            manufacturer: 'Kepro', batch_number: 'BT2025014', expiry_date: d(20),
-            quantity: 33, unit_price: 28000, description: 'Polypeptide antibiotic for enteric infections, especially E. coli in poultry.',
-            created_at: dp(2)
-        },
-        {
-            medicine_id: 'med_025', medicine_name: 'Praziquantel 50mg Tablets', category: 'Antiparasitic',
-            manufacturer: 'Elanco', batch_number: 'BT2025015', expiry_date: d(36),
-            quantity: 2, unit_price: 7500, description: 'Oral treatment for tapeworm infections in dogs, cats and poultry.',
-            created_at: dp(1)
-        }
+        { medicine_id: 'med_001', medicine_name: 'Oxytetracycline 20%', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT001', expiry_date: '2027-03-15', quantity: 120, unit_price: 18000, description: '', created_at: dp(3) },
+        { medicine_id: 'med_002', medicine_name: 'Albendazole Bolus', category: 'Dewormer', manufacturer: 'Elanco', batch_number: 'BAT002', expiry_date: '2027-01-10', quantity: 80, unit_price: 12000, description: '', created_at: dp(3) },
+        { medicine_id: 'med_003', medicine_name: 'Ivermectin Injection', category: 'Dewormer', manufacturer: 'Kepro', batch_number: 'BAT003', expiry_date: '2026-11-05', quantity: 45, unit_price: 25000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_004', medicine_name: 'Penicillin-Streptomycin', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT004', expiry_date: '2027-08-20', quantity: 150, unit_price: 22000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_005', medicine_name: 'Multivitamin Injection', category: 'Vitamin', manufacturer: 'Intervet', batch_number: 'BAT005', expiry_date: '2026-12-30', quantity: 60, unit_price: 15000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_006', medicine_name: 'Calcium Borogluconate', category: 'Supplement', manufacturer: 'Elanco', batch_number: 'BAT006', expiry_date: '2028-02-12', quantity: 95, unit_price: 28000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_007', medicine_name: 'Ketoprofen Injection', category: 'Anti-inflammatory', manufacturer: 'Kepro', batch_number: 'BAT007', expiry_date: '2026-09-18', quantity: 18, unit_price: 35000, description: '', created_at: dp(4) },
+        { medicine_id: 'med_008', medicine_name: 'Diminazene Aceturate', category: 'Antiprotozoal', manufacturer: 'Intervet', batch_number: 'BAT008', expiry_date: '2027-05-22', quantity: 75, unit_price: 30000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_009', medicine_name: 'Amprolium Powder', category: 'Coccidiostat', manufacturer: 'Norbrook', batch_number: 'BAT009', expiry_date: '2027-04-11', quantity: 55, unit_price: 27000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_010', medicine_name: 'Sulfadimidine Injection', category: 'Antibiotic', manufacturer: 'Elanco', batch_number: 'BAT010', expiry_date: '2026-10-08', quantity: 20, unit_price: 24000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_011', medicine_name: 'Tylosin Injection', category: 'Antibiotic', manufacturer: 'Elanco', batch_number: 'BAT011', expiry_date: '2027-06-15', quantity: 100, unit_price: 32000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_012', medicine_name: 'Levamisole Injection', category: 'Dewormer', manufacturer: 'Bayer', batch_number: 'BAT012', expiry_date: '2027-07-19', quantity: 70, unit_price: 19000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_013', medicine_name: 'Vitamin ADE', category: 'Vitamin', manufacturer: 'Norbrook', batch_number: 'BAT013', expiry_date: '2028-01-05', quantity: 90, unit_price: 17000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_014', medicine_name: 'Enrofloxacin 10%', category: 'Antibiotic', manufacturer: 'Intervet', batch_number: 'BAT014', expiry_date: '2026-08-30', quantity: 12, unit_price: 45000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_015', medicine_name: 'Gentamycin Injection', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT015', expiry_date: '2027-02-14', quantity: 85, unit_price: 26000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_016', medicine_name: 'Doxycycline Powder', category: 'Antibiotic', manufacturer: 'Kepro', batch_number: 'BAT016', expiry_date: '2026-07-28', quantity: 0, unit_price: 40000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_017', medicine_name: 'Flunixin Meglumine', category: 'Pain Reliever', manufacturer: 'Bayer', batch_number: 'BAT017', expiry_date: '2027-09-03', quantity: 30, unit_price: 48000, description: '', created_at: dp(3) },
+        { medicine_id: 'med_018', medicine_name: 'Oxytocin Injection', category: 'Hormone', manufacturer: 'Elanco', batch_number: 'BAT018', expiry_date: '2026-10-15', quantity: 50, unit_price: 12000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_019', medicine_name: 'Iron Dextran', category: 'Supplement', manufacturer: 'Kepro', batch_number: 'BAT019', expiry_date: '2028-03-20', quantity: 65, unit_price: 23000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_020', medicine_name: 'Ciprofloxacin Tablets', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT020', expiry_date: '2026-11-22', quantity: 25, unit_price: 21000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_021', medicine_name: 'Toltrazuril Oral', category: 'Coccidiostat', manufacturer: 'Intervet', batch_number: 'BAT021', expiry_date: '2027-04-30', quantity: 40, unit_price: 38000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_022', medicine_name: 'Closantel Oral', category: 'Dewormer', manufacturer: 'Intervet', batch_number: 'BAT022', expiry_date: '2027-12-10', quantity: 95, unit_price: 34000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_023', medicine_name: 'Meloxicam Injection', category: 'Anti-inflammatory', manufacturer: 'Bayer', batch_number: 'BAT023', expiry_date: '2026-09-25', quantity: 28, unit_price: 37000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_024', medicine_name: 'Neomycin Powder', category: 'Antibiotic', manufacturer: 'Kepro', batch_number: 'BAT024', expiry_date: '2026-08-14', quantity: 0, unit_price: 29000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_025', medicine_name: 'Electrolyte Powder', category: 'Supplement', manufacturer: 'Elanco', batch_number: 'BAT025', expiry_date: '2028-04-01', quantity: 110, unit_price: 14000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_026', medicine_name: 'Selenium + Vitamin E', category: 'Vitamin', manufacturer: 'Norbrook', batch_number: 'BAT026', expiry_date: '2027-05-17', quantity: 48, unit_price: 31000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_027', medicine_name: 'Tetracycline Eye Ointment', category: 'Antibiotic', manufacturer: 'Intervet', batch_number: 'BAT027', expiry_date: '2026-10-20', quantity: 22, unit_price: 9000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_028', medicine_name: 'Florfenicol Injection', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT028', expiry_date: '2027-07-11', quantity: 58, unit_price: 52000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_029', medicine_name: 'Povidone Iodine', category: 'Antiseptic', manufacturer: 'Bayer', batch_number: 'BAT029', expiry_date: '2028-01-22', quantity: 140, unit_price: 10000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_030', medicine_name: 'Chlorhexidine Solution', category: 'Disinfectant', manufacturer: 'Kepro', batch_number: 'BAT030', expiry_date: '2027-06-08', quantity: 75, unit_price: 16000, description: '', created_at: dp(1) }
     ];
     DB.saveMedicines(medicines);
 
