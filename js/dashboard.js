@@ -46,8 +46,21 @@
           </div>
         </div>
       </div>
-    </div>
-  `;
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header">
+          <h3><i class="fas fa-pills"></i> Medicine Stock Overview</h3>
+          <a href="inventory.html" class="btn btn-sm btn-primary"><i class="fas fa-arrow-right"></i> View All</a>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="table-container">
+            <table>
+              <thead><tr><th>#</th><th>Medicine</th><th>Category</th><th>Batch</th><th>Stock</th><th>Expiry</th><th>Status</th></tr></thead>
+              <tbody id="medicines-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>`;
 
   loadDashboard();
 })();
@@ -58,6 +71,7 @@ function loadDashboard() {
   renderCategoryChart();
   loadAlerts();
   loadRecentSales();
+  loadMedicinesOverview();
 }
 
 function loadStats() {
@@ -144,6 +158,38 @@ function loadAlerts() {
         <span>${App.formatDateTime(a.created_at)} &bull; <span class="badge badge-${a.status === 'unread' ? 'danger' : 'secondary'}">${a.status}</span></span>
       </div>
     </div>`).join('');
+}
+
+function loadMedicinesOverview() {
+  const meds = DB.getMedicines();
+  const tbody = document.getElementById('medicines-table');
+  if (!tbody) return;
+  if (!meds.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding:30px;color:#9e9e9e">No medicines in inventory.</td></tr>';
+    return;
+  }
+  const display = meds.slice(0, 10);
+  tbody.innerHTML = display.map((m, i) => {
+    let badge = '';
+    if (App.isExpired(m.expiry_date)) badge = '<span class="badge badge-danger">Expired</span>';
+    else if (m.quantity === 0) badge = '<span class="badge badge-danger">Out of Stock</span>';
+    else if (m.quantity < 10) badge = '<span class="badge badge-warning">Low Stock</span>';
+    else if (App.isExpiringSoon(m.expiry_date, 30)) badge = '<span class="badge badge-warning">Expiring</span>';
+    else badge = '<span class="badge badge-success">In Stock</span>';
+    const days = App.daysUntilExpiry(m.expiry_date);
+    let expiryLabel = App.formatDate(m.expiry_date);
+    if (days !== null && days < 0) expiryLabel = '<span style="color:var(--danger);font-weight:600">Expired</span>';
+    else if (days !== null && days <= 30) expiryLabel = '<span style="color:var(--warning);font-weight:600">' + days + 'd left</span>';
+    return '<tr>' +
+      '<td style="color:#9e9e9e;font-size:12px">' + (i + 1) + '</td>' +
+      '<td><strong>' + m.medicine_name + '</strong></td>' +
+      '<td><span class="category-pill">' + m.category + '</span></td>' +
+      '<td style="font-size:12px;color:#616161">' + (m.batch_number || '—') + '</td>' +
+      '<td><strong style="font-size:15px">' + m.quantity + '</strong></td>' +
+      '<td>' + expiryLabel + '</td>' +
+      '<td>' + badge + '</td>' +
+      '</tr>';
+  }).join('');
 }
 
 function loadRecentSales() {
