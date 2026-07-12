@@ -11,12 +11,11 @@ function renderSidebar(pageTitle, pageSubtitle) {
   const alertCount = alerts.length;
   const page = window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
 
-  function navLink(href, icon, label, adminOnly) {
+  function navLink(href, icon, label) {
     const pageName = href.replace('.html', '');
     const active = pageName === page ? 'active' : '';
-    const cls = adminOnly ? 'nav-item admin-only' : 'nav-item';
     return `
-      <div class="${cls}">
+      <div class="nav-item">
         <a href="${href}" class="nav-link ${active}" data-page="${pageName}">
           <i class="fas ${icon}"></i><span>${label}</span>
         </a>
@@ -53,16 +52,13 @@ function renderSidebar(pageTitle, pageSubtitle) {
         <div class="logo-text"><h2>AgroMaster</h2><span>Inventory System</span></div>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-section-title">Main Menu</div>
         ${navLink('dashboard.html', 'fa-th-large', 'Dashboard')}
         ${navLink('inventory.html', 'fa-pills', 'Medicines')}
         ${navLink('suppliers.html', 'fa-truck', 'Suppliers')}
-        <div class="nav-section-title">Transactions</div>
         ${navLink('sales.html', 'fa-cash-register', 'Sales')}
         ${navLink('purchases.html', 'fa-shopping-cart', 'Purchases')}
-        <div class="nav-section-title">System</div>
         ${navLink('reports.html', 'fa-chart-bar', 'Operations Reports')}
-        ${navLink('users.html', 'fa-users', 'Users', true)}
+        ${navLink('users.html', 'fa-users', 'Users')}
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user">
@@ -72,6 +68,9 @@ function renderSidebar(pageTitle, pageSubtitle) {
             <span>${user.role}</span>
           </div>
         </div>
+        <button class="btn-logout sidebar-logout" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
       </div>
     </aside>
 
@@ -98,9 +97,6 @@ function renderSidebar(pageTitle, pageSubtitle) {
               <span>${user.role}</span>
             </div>
           </div>
-          <button class="btn-logout" id="logout-btn">
-            <i class="fas fa-sign-out-alt"></i> Logout
-          </button>
         </div>
       </header>
       <div id="page-body"></div>
@@ -109,11 +105,6 @@ function renderSidebar(pageTitle, pageSubtitle) {
 
   const app = document.getElementById('app');
   app.innerHTML = html;
-
-  // Hide admin-only items
-  if (user.role !== 'Administrator') {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-  }
 
   // Logout
   document.getElementById('logout-btn').addEventListener('click', () => App.logout());

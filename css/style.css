@@ -434,6 +434,27 @@ textarea {
     font-size: 11px;
 }
 
+.sidebar-logout {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+.sidebar-logout:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--white);
+}
+
 /* ---- Main Content ---- */
 .main-content {
     margin-left: 260px;
