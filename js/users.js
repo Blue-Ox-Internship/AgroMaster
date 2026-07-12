@@ -48,7 +48,7 @@ function initUsers() {
   loadUsers();
   document.getElementById('add-user-btn').addEventListener('click', openAddModal);
   document.getElementById('save-user-btn').addEventListener('click', saveUser);
-  document.getElementById('search-input').addEventListener('input', renderTable);
+  document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 200));
   document.getElementById('role-filter').addEventListener('change', renderTable);
 }
 
@@ -72,7 +72,7 @@ function renderTable() {
   const roleClass = { 'Administrator': 'role-admin', 'Store Manager': 'role-manager', 'Sales Attendant': 'role-attendant' };
   tbody.innerHTML = filtered.map((u, i) => {
     const isMe = currentUser && u.user_id === currentUser.user_id;
-    return `<tr ${isMe ? 'style="background:#f1f8e9;"' : ''}>
+    return `<tr class="clickable-row" ${isMe ? 'style="background:#f1f8e9;"' : ''} onclick="openEditModal('${u.user_id}')">
       <td style="color:#9e9e9e;font-size:12px;">${i + 1}</td>
       <td>
         <div style="display:flex;align-items:center;gap:10px;">
@@ -87,8 +87,8 @@ function renderTable() {
       <td style="font-size:12px;color:var(--text-light);">${App.formatDate(u.created_at)}</td>
       <td>
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-icon btn-warning" title="Edit" onclick="openEditModal('${u.user_id}')"><i class="fas fa-edit"></i></button>
-          ${!isMe ? `<button class="btn btn-icon btn-danger" title="Delete" onclick="deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button>` : ''}
+          <button class="btn btn-icon btn-warning" title="Edit" onclick="event.stopPropagation();openEditModal('${u.user_id}')"><i class="fas fa-edit"></i></button>
+          ${!isMe ? `<button class="btn btn-icon btn-danger" title="Delete" onclick="event.stopPropagation();deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button>` : ''}
         </div>
       </td>
     </tr>`;

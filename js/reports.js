@@ -139,7 +139,7 @@ function loadStockReport() {
     <div class="summary-card"><span class="value" style="color:var(--danger)">${outOfStock}</span><div class="label">Out of Stock</div></div>`;
   const sorted = [...meds].sort((a, b) => a.quantity - b.quantity);
   document.getElementById('stock-table').innerHTML = sorted.map((m, i) => `
-    <tr>
+    <tr class="clickable-row" onclick="window.location.href='inventory.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
       <td><strong>${m.medicine_name}</strong></td>
       <td><span class="category-pill">${m.category}</span></td>
@@ -184,7 +184,7 @@ function filterSalesReport() {
   const sorted = [...filtered].sort((a, b) => b.sale_date.localeCompare(a.sale_date));
   document.getElementById('sales-report-table').innerHTML = sorted.map((s, i) => {
     const med = meds.find(m => m.medicine_id === s.medicine_id);
-    return `<tr>
+    return `<tr class="clickable-row" onclick="window.location.href='sales.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
       <td><strong>${med ? med.medicine_name : '—'}</strong></td>
       <td><span class="category-pill">${med ? med.category : '—'}</span></td>
@@ -221,7 +221,7 @@ function loadExpiryReport() {
     else if (days < 0) { daysLabel = `<span style="color:var(--danger);font-weight:600">${Math.abs(days)} days ago</span>`; badge = '<span class="badge badge-danger">Expired</span>'; }
     else if (days <= 30) { daysLabel = `<span style="color:var(--warning);font-weight:600">${days} days</span>`; badge = '<span class="badge badge-warning">Expiring Soon</span>'; }
     else { daysLabel = `<span style="color:var(--primary)">${days} days</span>`; badge = '<span class="badge badge-success">Valid</span>'; }
-    return `<tr>
+    return `<tr class="clickable-row" onclick="window.location.href='inventory.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
       <td><strong>${m.medicine_name}</strong></td>
       <td><span class="category-pill">${m.category}</span></td>
@@ -249,7 +249,7 @@ function loadSupplierReport() {
     <div class="summary-card"><span class="value">${purchases.length}</span><div class="label">Total Purchase Orders</div></div>
     <div class="summary-card"><span class="value">${App.formatCurrency(totalSpent)}</span><div class="label">Total Spent</div></div>`;
   document.getElementById('sup-report-table').innerHTML = supStats.map((s, i) => `
-    <tr>
+    <tr class="clickable-row" onclick="window.location.href='suppliers.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
       <td><strong>${s.supplier_name}</strong></td>
       <td style="font-size:13px">${s.phone || '—'}<br/><small style="color:var(--info)">${s.email || ''}</small></td>

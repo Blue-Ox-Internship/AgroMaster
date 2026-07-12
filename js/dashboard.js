@@ -180,7 +180,7 @@ function loadMedicinesOverview() {
     let expiryLabel = App.formatDate(m.expiry_date);
     if (days !== null && days < 0) expiryLabel = '<span style="color:var(--danger);font-weight:600">Expired</span>';
     else if (days !== null && days <= 30) expiryLabel = '<span style="color:var(--warning);font-weight:600">' + days + 'd left</span>';
-    return '<tr>' +
+    return '<tr class="clickable-row" onclick="window.location.href=\'inventory.html\'">' +
       '<td style="color:#9e9e9e;font-size:12px">' + (i + 1) + '</td>' +
       '<td><strong>' + m.medicine_name + '</strong></td>' +
       '<td><span class="category-pill">' + m.category + '</span></td>' +
@@ -200,6 +200,6 @@ function loadRecentSales() {
   if (!sales.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding:30px;color:#9e9e9e">No sales recorded yet.</td></tr>'; return; }
   tbody.innerHTML = sales.map(s => {
     const med = meds.find(m => m.medicine_id === s.medicine_id);
-    return `<tr><td><strong>${med ? med.medicine_name : '—'}</strong></td><td>${s.quantity}</td><td class="ugx">${App.formatCurrency(s.total_amount)}</td><td>${App.formatDate(s.sale_date)}</td></tr>`;
+    return `<tr class="clickable-row" onclick="window.location.href='sales.html'"><td><strong>${med ? med.medicine_name : '—'}</strong></td><td>${s.quantity}</td><td class="ugx">${App.formatCurrency(s.total_amount)}</td><td>${App.formatDate(s.sale_date)}</td></tr>`;
   }).join('');
 }

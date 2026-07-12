@@ -50,7 +50,7 @@ function initSuppliers() {
   loadSuppliers();
   document.getElementById('add-sup-btn').addEventListener('click', openAddModal);
   document.getElementById('save-sup-btn').addEventListener('click', saveSupplier);
-  document.getElementById('search-input').addEventListener('input', renderTable);
+  document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 200));
 }
 
 function loadSuppliers() { allSups = DB.getSuppliers(); renderTable(); }
@@ -72,12 +72,11 @@ function renderTable() {
   const purchases = DB.getPurchases();
   tbody.innerHTML = filtered.map((s, i) => {
     const purchaseCount = purchases.filter(p => p.supplier_id === s.supplier_id).length;
-    // Format added date cleanly
     const addedDate = s.created_at
       ? new Date(s.created_at).toLocaleDateString('en-UG', { day: '2-digit', month: 'short', year: 'numeric' })
       : '—';
     return `
-      <tr>
+      <tr class="clickable-row" onclick="viewSupplier('${s.supplier_id}')">
         <td style="color:#9e9e9e;font-size:12px;">${i + 1}</td>
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
@@ -99,14 +98,14 @@ function renderTable() {
         </td>
         <td>
           <div style="display:flex;gap:6px;">
-            <button class="btn btn-icon" title="View Details" onclick="viewSupplier('${s.supplier_id}')"
+            <button class="btn btn-icon" title="View Details" onclick="event.stopPropagation();viewSupplier('${s.supplier_id}')"
               style="background:#e3f2fd;color:#1565c0;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;">
               <i class="fas fa-eye"></i>
             </button>
-            <button class="btn btn-icon btn-warning" title="Edit Supplier" onclick="openEditModal('${s.supplier_id}')">
+            <button class="btn btn-icon btn-warning" title="Edit Supplier" onclick="event.stopPropagation();openEditModal('${s.supplier_id}')">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="btn btn-icon btn-danger" title="Delete Supplier" onclick="deleteSupplier('${s.supplier_id}')">
+            <button class="btn btn-icon btn-danger" title="Delete Supplier" onclick="event.stopPropagation();deleteSupplier('${s.supplier_id}')">
               <i class="fas fa-trash"></i>
             </button>
           </div>

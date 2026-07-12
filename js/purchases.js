@@ -39,7 +39,7 @@
   document.getElementById('pur-date').value = App.today();
   document.getElementById('add-purchase-btn').addEventListener('click', openPurModal);
   document.getElementById('save-pur-btn').addEventListener('click', savePurchase);
-  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadPurchaseStats();
   loadPurchases();
@@ -89,14 +89,14 @@ function renderTable() {
   tbody.innerHTML = page.map((p, i) => {
     const med = meds.find(m => m.medicine_id === p.medicine_id);
     const sup = sups.find(s => s.supplier_id === p.supplier_id);
-    return `<tr>
+    return `<tr class="clickable-row" onclick="viewPurchase('${p.purchase_id}')">
       <td><strong>${med ? med.medicine_name : '—'}</strong><br><span style="font-size:11px;color:#757575;">${med ? med.category : ''}</span></td>
       <td><strong>${sup ? sup.supplier_name : '—'}</strong><br><span style="font-size:11px;color:#757575;">${sup ? sup.phone : ''}</span></td>
       <td><strong>${p.quantity}</strong> units</td>
       <td>${App.formatCurrency(p.buying_price)}</td>
       <td><strong class="ugx" style="color:var(--primary)">${App.formatCurrency(p.quantity * p.buying_price)}</strong></td>
       <td>${App.formatDate(p.purchase_date)}</td>
-      <td><button class="btn btn-icon btn-danger" title="Delete" onclick="deletePurchase('${p.purchase_id}')"><i class="fas fa-trash"></i></button></td>
+      <td><button class="btn btn-icon btn-danger" title="Delete" onclick="event.stopPropagation();deletePurchase('${p.purchase_id}')"><i class="fas fa-trash"></i></button></td>
     </tr>`;
   }).join('');
   renderPagination();
@@ -147,6 +147,17 @@ function savePurchase() {
   DB.addPurchase({ supplier_id: supId, medicine_id: medId, quantity: qty, buying_price: price, purchase_date: date });
   Toast.show('success', 'Purchase Recorded!', `${qty} unit(s) of ${med ? med.medicine_name : 'medicine'} purchased. Stock updated.`);
   Modal.close('pur-modal'); loadPurchaseStats(); loadPurchases();
+}
+
+function viewPurchase(id) {
+  const p = DB.getPurchases().find(x => x.purchase_id === id);
+  if (!p) return;
+  const med = DB.getMedicines().find(m => m.medicine_id === p.medicine_id);
+  const sup = DB.getSuppliers().find(s => s.supplier_id === p.supplier_id);
+  Toast.show('info', 'Purchase Details',
+    (med ? med.medicine_name : '—') + ' from ' + (sup ? sup.supplier_name : '—') +
+    ' — ' + p.quantity + ' units @ ' + App.formatCurrency(p.buying_price) +
+    ' = ' + App.formatCurrency(p.quantity * p.buying_price));
 }
 
 async function deletePurchase(id) {

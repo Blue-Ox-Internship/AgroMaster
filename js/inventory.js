@@ -62,7 +62,7 @@ function initInventory() {
   loadMeds();
   document.getElementById('add-med-btn').addEventListener('click', () => openAddModal());
   document.getElementById('save-med-btn').addEventListener('click', saveMedicine);
-  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
 }
@@ -101,7 +101,7 @@ function renderTable() {
     const stockLevel = m.quantity > 30 ? 'high' : m.quantity > 10 ? 'medium' : 'low';
     const stockValue = m.quantity * m.unit_price;
     return `
-      <tr>
+      <tr class="clickable-row" onclick="viewMedicine('${m.medicine_id}')">
         <td style="color:#9e9e9e;font-size:12px;">${start + i + 1}</td>
         <td><strong>${m.medicine_name}</strong><div style="font-size:11px;color:#9e9e9e;">${m.manufacturer || ''}</div></td>
         <td><span class="category-pill">${m.category}</span></td>
@@ -118,9 +118,9 @@ function renderTable() {
         <td>${status}</td>
         <td>
           <div style="display:flex;gap:6px;">
-            <button class="btn btn-icon" style="background:#e8f5e9;color:#2e7d32;" title="View" onclick="viewMedicine('${m.medicine_id}')"><i class="fas fa-eye"></i></button>
-            <button class="btn btn-icon btn-warning" title="Edit" onclick="openEditModal('${m.medicine_id}')"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-icon btn-danger" title="Delete" onclick="deleteMedicine('${m.medicine_id}')"><i class="fas fa-trash"></i></button>
+            <button class="btn btn-icon" style="background:#e8f5e9;color:#2e7d32;" title="View" onclick="event.stopPropagation();viewMedicine('${m.medicine_id}')"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-icon btn-warning" title="Edit" onclick="event.stopPropagation();openEditModal('${m.medicine_id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-icon btn-danger" title="Delete" onclick="event.stopPropagation();deleteMedicine('${m.medicine_id}')"><i class="fas fa-trash"></i></button>
           </div>
         </td>
       </tr>`;

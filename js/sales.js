@@ -39,7 +39,7 @@
   document.getElementById('sale-date').value = App.today();
   document.getElementById('add-sale-btn').addEventListener('click', openSaleModal);
   document.getElementById('save-sale-btn').addEventListener('click', saveSale);
-  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadSalesStats();
   loadSales();
@@ -89,7 +89,7 @@ function renderTable() {
   }
   tbody.innerHTML = page.map((s, i) => {
     const med = meds.find(m => m.medicine_id === s.medicine_id);
-    return `<tr>
+    return `<tr class="clickable-row" onclick="viewSale('${s.sale_id}')">
       <td style="color:#9e9e9e;font-size:12px;">${start + i + 1}</td>
       <td><strong>${med ? med.medicine_name : '(Deleted)'}</strong></td>
       <td><span class="category-pill">${med ? med.category : '—'}</span></td>
@@ -97,7 +97,7 @@ function renderTable() {
       <td>${App.formatCurrency(s.selling_price)}</td>
       <td><strong class="ugx" style="color:var(--primary)">${App.formatCurrency(s.total_amount)}</strong></td>
       <td>${App.formatDate(s.sale_date)}</td>
-      <td><button class="btn btn-icon btn-danger" title="Delete" onclick="deleteSale('${s.sale_id}')"><i class="fas fa-trash"></i></button></td>
+      <td><button class="btn btn-icon btn-danger" title="Delete" onclick="event.stopPropagation();deleteSale('${s.sale_id}')"><i class="fas fa-trash"></i></button></td>
     </tr>`;
   }).join('');
   renderPagination();
@@ -161,6 +161,15 @@ function saveSale() {
   DB.addSale({ medicine_id: medId, quantity: qty, selling_price: price, sale_date: date });
   Toast.show('success', 'Sale Recorded!', `${qty} unit(s) of ${med.medicine_name} sold for ${App.formatCurrency(qty * price)}.`);
   Modal.close('sale-modal'); loadSalesStats(); loadSales();
+}
+
+function viewSale(id) {
+  const s = DB.getSales().find(x => x.sale_id === id);
+  if (!s) return;
+  const med = DB.getMedicines().find(m => m.medicine_id === s.medicine_id);
+  Toast.show('info', 'Sale Details',
+    (med ? med.medicine_name : 'Deleted medicine') + ' — ' + s.quantity + ' units @ ' + App.formatCurrency(s.selling_price) +
+    ' = ' + App.formatCurrency(s.total_amount) + ' on ' + App.formatDate(s.sale_date));
 }
 
 async function deleteSale(id) {
