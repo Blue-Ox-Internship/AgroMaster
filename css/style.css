@@ -10,23 +10,23 @@
     --primary: #2e7d32;
     --secondary: #43a047;
     --accent: #66bb6a;
-    --bg: #f1f8e9;
+    --bg: #faf3e8;
     --sidebar: #1b5e20;
     --sidebar-hover: #2e7d32;
     --white: #ffffff;
     --text: #212121;
     --text-light: #616161;
-    --warning: #f57c00;
+    --warning: #b76e2e;
     --danger: #c62828;
     --danger-light: #ffebee;
-    --warning-light: #fff3e0;
+    --warning-light: #fef3e2;
     --success-light: #e8f5e9;
     --info: #0288d1;
     --info-light: #e1f5fe;
-    --border: #e0e0e0;
-    --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    --border: #e8ddd0;
+    --shadow: 0 2px 12px rgba(90, 60, 30, 0.08);
+    --shadow-md: 0 4px 20px rgba(90, 60, 30, 0.12);
+    --shadow-lg: 0 8px 30px rgba(90, 60, 30, 0.15);
     --radius: 12px;
     --radius-sm: 8px;
     --transition: all 0.3s ease;
@@ -52,6 +52,13 @@ body {
     font-size: 14px;
     line-height: 1.6;
     overflow-x: hidden;
+    background-image:
+        radial-gradient(ellipse at 15% 20%, rgba(46, 125, 50, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 10%, rgba(183, 110, 46, 0.04) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 80%, rgba(46, 125, 50, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 10% 60%, rgba(102, 187, 106, 0.03) 0%, transparent 30%),
+        radial-gradient(ellipse at 90% 75%, rgba(245, 124, 0, 0.03) 0%, transparent 40%);
+    background-attachment: fixed;
 }
 
 a {
@@ -462,6 +469,26 @@ textarea {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    position: relative;
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(46, 125, 50, 0.015) 40px, rgba(46, 125, 50, 0.015) 41px);
+}
+.main-content::before {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 260px;
+    height: 260px;
+    opacity: 0.04;
+    background:
+        radial-gradient(circle at 30% 70%, transparent 40%, rgba(46, 125, 50, 0.3) 45%, transparent 50%),
+        radial-gradient(circle at 60% 40%, transparent 35%, rgba(46, 125, 50, 0.2) 40%, transparent 45%),
+        radial-gradient(circle at 20% 80%, transparent 25%, rgba(102, 187, 106, 0.25) 30%, transparent 35%),
+        radial-gradient(circle at 70% 20%, transparent 30%, rgba(46, 125, 50, 0.2) 35%, transparent 40%);
+    background-size: 80px 80px;
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* ---- Topbar ---- */
@@ -607,6 +634,45 @@ textarea {
 .page-content {
     padding: 28px;
     flex: 1;
+    position: relative;
+    z-index: 1;
+    background-image:
+        radial-gradient(ellipse at 0% 100%, rgba(102, 187, 106, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 100% 0%, rgba(183, 110, 46, 0.03) 0%, transparent 50%);
+}
+.page-content::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 40px 14px at 200px 260px, #2e7d32 0%, transparent 100%),
+        radial-gradient(ellipse 34px 12px at 230px 240px, #2e7d32 0%, transparent 100%),
+        radial-gradient(ellipse 36px 10px at 170px 270px, #43a047 0%, transparent 100%),
+        radial-gradient(ellipse 30px 8px at 140px 280px, #66bb6a 0%, transparent 100%),
+        radial-gradient(ellipse 6px 20px at 208px 250px, #5d4037 0%, transparent 100%);
+}
+.page-content::before {
+    content: '';
+    position: fixed;
+    top: 120px;
+    left: 280px;
+    width: 200px;
+    height: 200px;
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 30px 10px at 80px 150px, #2e7d32 0%, transparent 100%),
+        radial-gradient(ellipse 26px 8px at 110px 140px, #43a047 0%, transparent 100%),
+        radial-gradient(ellipse 28px 9px at 50px 160px, #66bb6a 0%, transparent 100%),
+        radial-gradient(ellipse 5px 16px at 90px 145px, #5d4037 0%, transparent 100%);
+    transform: rotate(-20deg);
 }
 
 /* ---- Stat Cards ---- */
@@ -628,13 +694,13 @@ textarea {
     transition: var(--transition);
     position: relative;
     overflow: hidden;
-    border: 1px solid transparent;
+    border: 1px solid rgba(46, 125, 50, 0.06);
 }
 
 .stat-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent);
+    border-color: rgba(46, 125, 50, 0.15);
 }
 
 .stat-card::after {
@@ -645,7 +711,7 @@ textarea {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    opacity: 0.08;
+    opacity: 0.06;
     transform: translate(20px, -20px);
 }
 
@@ -663,6 +729,16 @@ textarea {
 
 .stat-card.blue::after {
     background: var(--info);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(46, 125, 50, 0.15), transparent);
 }
 
 .stat-icon {
@@ -734,6 +810,18 @@ textarea {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(46, 125, 50, 0.06);
+}
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), transparent);
+    opacity: 0.3;
 }
 
 .card-header {
@@ -742,6 +830,7 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: linear-gradient(180deg, rgba(46, 125, 50, 0.02), transparent);
 }
 
 .card-header h3 {
@@ -776,18 +865,18 @@ table {
 thead th {
     padding: 12px 16px;
     text-align: left;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-light);
-    background: #f8f9fa;
-    border-bottom: 2px solid var(--border);
+    background: #fcf9f5;
+    border-bottom: 2px solid rgba(46, 125, 50, 0.08);
     white-space: nowrap;
 }
 
 tbody tr {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(232, 221, 208, 0.4);
     transition: var(--transition);
 }
 
@@ -796,7 +885,7 @@ tbody tr:last-child {
 }
 
 tbody tr:hover {
-    background: #f9fbe7;
+    background: rgba(46, 125, 50, 0.03);
 }
 
 tbody td {
@@ -945,7 +1034,7 @@ tbody td {
     width: 100%;
     padding: 9px 12px 9px 38px;
     border: 1.5px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 13px;
     transition: var(--transition);
     background: var(--white);
@@ -1313,11 +1402,24 @@ tbody td {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(46, 125, 50, 0.06);
+}
+.chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), transparent);
+    opacity: 0.3;
 }
 
 .chart-card .card-header {
     padding: 18px 22px;
     border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(46, 125, 50, 0.02), transparent);
 }
 
 .chart-wrapper {
@@ -1452,6 +1554,7 @@ tbody td {
     padding: 18px;
     box-shadow: var(--shadow);
     text-align: center;
+    border: 1px solid rgba(46, 125, 50, 0.06);
 }
 
 .summary-card .value {
