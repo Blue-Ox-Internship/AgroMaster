@@ -17,9 +17,6 @@
         </div>
         <select class="filter-select" id="category-filter">
           <option value="">All Categories</option>
-          <option>Antibiotic</option><option>Antiparasitic</option><option>Supplement</option>
-          <option>Pesticide</option><option>Antifungal</option><option>Anti-inflammatory</option>
-          <option>Vaccine</option><option>Other</option>
         </select>
         <select class="filter-select" id="stock-filter">
           <option value="">All Stock Levels</option>
@@ -58,16 +55,28 @@ let allMeds = [];
 let filteredMeds = [];
 let editingId = null;
 
+function populateCategoryFilter() {
+  var cats = {};
+  allMeds.forEach(function (m) { cats[m.category] = true; });
+  var sel = document.getElementById('category-filter');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">All Categories</option>';
+  Object.keys(cats).sort().forEach(function (c) {
+    sel.innerHTML += '<option>' + c + '</option>';
+  });
+  if (cur) sel.value = cur;
+}
+
 function initInventory() {
   loadMeds();
-  document.getElementById('add-med-btn').addEventListener('click', () => openAddModal());
+  document.getElementById('add-med-btn').addEventListener('click', function () { openAddModal(); });
   document.getElementById('save-med-btn').addEventListener('click', saveMedicine);
   document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
 }
 
-function loadMeds() { allMeds = DB.getMedicines(); applyFilters(); }
+function loadMeds() { allMeds = DB.getMedicines(); populateCategoryFilter(); applyFilters(); }
 
 function applyFilters() {
   const search = document.getElementById('search-input').value.toLowerCase();
@@ -165,11 +174,22 @@ function goPage(p) {
   currentPage = p; renderTable();
 }
 
+function populateModalCategories(selected) {
+  var cats = {};
+  allMeds.forEach(function (m) { cats[m.category] = true; });
+  var sel = document.getElementById('med-category');
+  sel.innerHTML = '<option value="">Select category</option>';
+  Object.keys(cats).sort().forEach(function (c) {
+    sel.innerHTML += '<option' + (c === selected ? ' selected' : '') + '>' + c + '</option>';
+  });
+}
+
 function openAddModal() {
   editingId = null;
   document.getElementById('modal-title').textContent = 'Add New Medicine';
   document.getElementById('med-form').reset();
   document.getElementById('med-id').value = '';
+  populateModalCategories('');
   Modal.open('med-modal');
 }
 
@@ -180,7 +200,7 @@ function openEditModal(id) {
   document.getElementById('modal-title').textContent = 'Edit Medicine';
   document.getElementById('med-id').value = id;
   document.getElementById('med-name').value = med.medicine_name;
-  document.getElementById('med-category').value = med.category;
+  populateModalCategories(med.category);
   document.getElementById('med-manufacturer').value = med.manufacturer || '';
   document.getElementById('med-batch').value = med.batch_number || '';
   document.getElementById('med-expiry').value = med.expiry_date || '';
