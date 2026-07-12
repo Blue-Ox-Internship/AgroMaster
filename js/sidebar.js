@@ -90,13 +90,7 @@ function renderSidebar(pageTitle, pageSubtitle) {
             <i class="fas fa-bell"></i>
             ${alertCount > 0 ? `<span class="notification-badge"></span>` : ''}
           </button>
-          <div class="topbar-user">
-            <div class="avatar">${avatarLetter}</div>
-            <div class="user-info">
-              <h4>${user.full_name}</h4>
-              <span>${user.role}</span>
-            </div>
-          </div>
+
         </div>
       </header>
       <div id="page-body"></div>
