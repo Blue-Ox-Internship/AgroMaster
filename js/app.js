@@ -264,9 +264,5 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') Modal.closeAll();
 });
 
-// ---- Seed database (deferred to not block initial render) ----
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(seedDatabase, 100));
-} else {
-    setTimeout(seedDatabase, 100);
-}
+// ---- Seed database ----
+seedDatabase();
