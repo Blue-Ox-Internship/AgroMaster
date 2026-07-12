@@ -75,74 +75,75 @@
         </div>
     </div>
 
-    <script src="js/data.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/data.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/app.js" defer></script>
     <script>
-        // Redirect if already logged in
-        if (App.getCurrentUser()) window.location.href = 'dashboard.html';
-
         function fillLogin(email, pass) {
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = pass;
+            var e = document.getElementById('email');
+            var p = document.getElementById('password');
+            if (e) e.value = email;
+            if (p) p.value = pass;
         }
 
-        // Toggle password visibility
-        document.getElementById('togglePassword').addEventListener('click', function () {
-            const pwd = document.getElementById('password');
-            const icon = this.querySelector('i');
-            if (pwd.type === 'password') {
-                pwd.type = 'text';
-                icon.className = 'fas fa-eye-slash';
-            } else {
-                pwd.type = 'password';
-                icon.className = 'fas fa-eye';
-            }
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+            if (App.getCurrentUser()) { window.location.href = 'dashboard.html'; return; }
 
-        document.getElementById('forgotPasswordLink').addEventListener('click', function (e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            if (!email) {
-                const errBox = document.getElementById('loginError');
-                errBox.style.display = 'block';
-                document.getElementById('loginErrorMsg').textContent = 'Please enter your email address first.';
-                return;
-            }
-            alert('A password reset link has been sent to ' + email);
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('loginBtn');
-            const errBox = document.getElementById('loginError');
-
-            if (!email || !password) {
-                errBox.style.display = 'block';
-                document.getElementById('loginErrorMsg').textContent = 'Please enter your email and password.';
-                return;
-            }
-
-            btn.innerHTML = '<span class="spinner"></span> Signing in...';
-            btn.disabled = true;
-
-            API.login(email, password).then(result => {
-                if (result.status === 'success') {
-                    App.setCurrentUser(result.user);
-                    window.location.href = 'dashboard.html';
+            document.getElementById('togglePassword').addEventListener('click', function () {
+                var pwd = document.getElementById('password');
+                var icon = this.querySelector('i');
+                if (pwd.type === 'password') {
+                    pwd.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
                 } else {
+                    pwd.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            });
+
+            document.getElementById('forgotPasswordLink').addEventListener('click', function (e) {
+                e.preventDefault();
+                var email = document.getElementById('email').value.trim();
+                if (!email) {
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('loginErrorMsg').textContent = 'Please enter your email address first.';
+                    return;
+                }
+                alert('A password reset link has been sent to ' + email);
+            });
+
+            document.getElementById('loginForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                var email = document.getElementById('email').value.trim();
+                var password = document.getElementById('password').value;
+                var btn = document.getElementById('loginBtn');
+                var errBox = document.getElementById('loginError');
+
+                if (!email || !password) {
                     errBox.style.display = 'block';
-                    document.getElementById('loginErrorMsg').textContent = result.message || 'Invalid email or password. Please try again.';
+                    document.getElementById('loginErrorMsg').textContent = 'Please enter your email and password.';
+                    return;
+                }
+
+                btn.innerHTML = '<span class="spinner"></span> Signing in...';
+                btn.disabled = true;
+
+                API.login(email, password).then(function (result) {
+                    if (result.status === 'success') {
+                        App.setCurrentUser(result.user);
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        errBox.style.display = 'block';
+                        document.getElementById('loginErrorMsg').textContent = result.message || 'Invalid email or password. Please try again.';
+                        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                        btn.disabled = false;
+                    }
+                }).catch(function () {
+                    errBox.style.display = 'block';
+                    document.getElementById('loginErrorMsg').textContent = 'Unable to reach the live API. Please try again shortly.';
                     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
                     btn.disabled = false;
-                }
-            }).catch(() => {
-                errBox.style.display = 'block';
-                document.getElementById('loginErrorMsg').textContent = 'Unable to reach the live API. Please try again shortly.';
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
-                btn.disabled = false;
+                });
             });
         });
     </script>
