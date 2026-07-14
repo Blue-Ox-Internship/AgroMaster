@@ -1,4 +1,4 @@
-module.exports = [
+﻿module.exports = [
     {
         user_id: 'usr_admin',
         full_name: 'Dr. Sarah Nakato',

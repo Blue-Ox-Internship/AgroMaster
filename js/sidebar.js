@@ -116,11 +116,4 @@ function renderSidebar(pageTitle, pageSubtitle) {
   });
 }
 
-// Helper: move a page-content element into #page-body
-function mountPageContent(el) {
-  const pb = document.getElementById('page-body');
-  if (pb && el) {
-    el.style.width = '';
-    pb.appendChild(el);
-  }
-}
+

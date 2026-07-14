@@ -1,4 +1,4 @@
-const demoUsers = require('./demo-users');
+﻿const demoUsers = require('./demo-users');
 
 const state = {
     users: demoUsers.map((user) => ({ ...user, user_id: user.user_id || `usr_${Math.random().toString(36).slice(2, 7)}` })),

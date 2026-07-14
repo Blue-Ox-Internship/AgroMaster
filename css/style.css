@@ -234,43 +234,6 @@ textarea {
     color: var(--text-light);
 }
 
-.quick-login {
-    background: var(--bg);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    margin-top: 20px;
-}
-
-.quick-login h4 {
-    font-size: 12px;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-}
-
-.quick-login .q-btns {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.quick-login .q-btn {
-    padding: 6px 12px;
-    border: 1.5px solid var(--primary);
-    background: transparent;
-    color: var(--primary);
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 500;
-    transition: var(--transition);
-}
-
-.quick-login .q-btn:hover {
-    background: var(--primary);
-    color: var(--white);
-}
-
 /* ---- App Layout ---- */
 .app-wrapper {
     display: flex;
