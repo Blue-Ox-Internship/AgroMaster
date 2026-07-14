@@ -58,7 +58,6 @@ function renderSidebar(pageTitle, pageSubtitle) {
         ${navLink('sales.html', 'fa-cash-register', 'Sales')}
         ${navLink('purchases.html', 'fa-shopping-cart', 'Purchases')}
         ${navLink('reports.html', 'fa-chart-bar', 'Operations Reports')}
-        ${navLink('users.html', 'fa-users', 'Users')}
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user">
