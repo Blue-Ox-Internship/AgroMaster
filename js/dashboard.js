@@ -47,14 +47,20 @@
         </div>
       </div>
       <div class="card" style="margin-top:20px;">
-        <div class="card-header">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
           <h3><i class="fas fa-pills"></i> Medicine Stock Overview</h3>
-          <a href="inventory.html" class="btn btn-sm btn-primary"><i class="fas fa-arrow-right"></i> View All</a>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="search-box" style="margin:0;width:240px;">
+              <i class="fas fa-search"></i>
+              <input type="search" id="dashboard-med-search" placeholder="Search medicines..." enterkeyhint="search" />
+            </div>
+            <a href="inventory.html" class="btn btn-sm btn-primary"><i class="fas fa-arrow-right"></i> View All</a>
+          </div>
         </div>
         <div class="card-body" style="padding:0">
           <div class="table-container">
             <table>
-              <thead><tr><th>#</th><th>Medicine</th><th>Category</th><th>Batch</th><th>Stock</th><th>Expiry</th><th>Status</th></tr></thead>
+              <thead><tr><th>#</th><th>Medicine</th><th>Category</th><th>Batch</th><th>Stock</th><th>Unit Price</th><th>Stock Value</th><th>Expiry</th><th>Status</th></tr></thead>
               <tbody id="medicines-table"></tbody>
             </table>
           </div>
