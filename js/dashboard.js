@@ -66,6 +66,26 @@
           </div>
         </div>
       </div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <h3><i class="fas fa-truck"></i> Suppliers Overview</h3>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="search-box" style="margin:0;width:240px;">
+              <i class="fas fa-search"></i>
+              <input type="search" id="dashboard-sup-search" placeholder="Search suppliers..." enterkeyhint="search" />
+            </div>
+            <a href="suppliers.html" class="btn btn-sm btn-primary"><i class="fas fa-arrow-right"></i> View All</a>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Supplier Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Date Added</th><th>Actions</th></tr></thead>
+              <tbody id="suppliers-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>`;
 
   loadDashboard();
@@ -78,6 +98,9 @@ function loadDashboard() {
   loadAlerts();
   loadRecentSales();
   loadMedicinesOverview();
+  loadSuppliersOverview();
+  document.getElementById('dashboard-med-search').addEventListener('input', App.debounce(loadMedicinesOverview, 200));
+  document.getElementById('dashboard-sup-search').addEventListener('input', App.debounce(loadSuppliersOverview, 200));
 }
 
 function loadStats() {
@@ -171,10 +194,19 @@ function loadMedicinesOverview() {
   const tbody = document.getElementById('medicines-table');
   if (!tbody) return;
   if (!meds.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding:30px;color:#9e9e9e">No medicines in inventory.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:30px;color:#9e9e9e">No medicines in inventory.</td></tr>';
     return;
   }
-  const display = meds.slice(0, 10);
+  const search = (document.getElementById('dashboard-med-search').value || '').trim().toLowerCase();
+  const display = meds.filter(m => !search ||
+    m.medicine_name.toLowerCase().includes(search) ||
+    m.category.toLowerCase().includes(search) ||
+    (m.batch_number || '').toLowerCase().includes(search)
+  ).slice(0, 10);
+  if (!display.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:30px;color:#9e9e9e">No medicines found.</td></tr>';
+    return;
+  }
   tbody.innerHTML = display.map((m, i) => {
     let badge = '';
     if (App.isExpired(m.expiry_date)) badge = '<span class="badge badge-danger">Expired</span>';
@@ -192,8 +224,49 @@ function loadMedicinesOverview() {
       '<td><span class="category-pill">' + m.category + '</span></td>' +
       '<td style="font-size:12px;color:#616161">' + (m.batch_number || '—') + '</td>' +
       '<td><strong style="font-size:15px">' + m.quantity + '</strong></td>' +
+      '<td class="ugx">' + App.formatCurrency(m.unit_price) + '</td>' +
+      '<td class="ugx"><strong>' + App.formatCurrency(m.quantity * m.unit_price) + '</strong></td>' +
       '<td>' + expiryLabel + '</td>' +
       '<td>' + badge + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function loadSuppliersOverview() {
+  const sups = DB.getSuppliers();
+  const tbody = document.getElementById('suppliers-table');
+  if (!tbody) return;
+  if (!sups.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:30px;color:#9e9e9e">No suppliers found.</td></tr>';
+    return;
+  }
+  const search = (document.getElementById('dashboard-sup-search').value || '').trim().toLowerCase();
+  const display = sups.filter(s => !search ||
+    s.supplier_name.toLowerCase().includes(search) ||
+    (s.phone || '').toLowerCase().includes(search) ||
+    (s.email || '').toLowerCase().includes(search) ||
+    (s.address || '').toLowerCase().includes(search)
+  ).slice(0, 10);
+  if (!display.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:30px;color:#9e9e9e">No suppliers found.</td></tr>';
+    return;
+  }
+  const purchases = DB.getPurchases();
+  tbody.innerHTML = display.map(s => {
+    const purchaseCount = purchases.filter(p => p.supplier_id === s.supplier_id).length;
+    const addedDate = s.created_at
+      ? new Date(s.created_at).toLocaleDateString('en-UG', { day: '2-digit', month: 'short', year: 'numeric' })
+      : '—';
+    return '<tr class="clickable-row" onclick="window.location.href=\'suppliers.html\'">' +
+      '<td><strong>' + s.supplier_name + '</strong><br><span style="font-size:11px;color:#9e9e9e">' + purchaseCount + ' purchase' + (purchaseCount !== 1 ? 's' : '') + '</span></td>' +
+      '<td>' + (s.phone || '—') + '</td>' +
+      '<td>' + (s.email ? '<a href="mailto:' + s.email + '" style="color:var(--info)">' + s.email + '</a>' : '—') + '</td>' +
+      '<td style="font-size:13px;color:#616161">' + (s.address || '—') + '</td>' +
+      '<td><span style="font-size:12px;color:#616161"><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>' + addedDate + '</span></td>' +
+      '<td>' +
+        '<button class="btn btn-icon" title="View" onclick="event.stopPropagation();window.location.href=\'suppliers.html\'" style="background:#e3f2fd;color:#1565c0;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;"><i class="fas fa-eye"></i></button> ' +
+        '<button class="btn btn-icon btn-warning" title="Edit" onclick="event.stopPropagation();window.location.href=\'suppliers.html\'" style="background:#fff3e0;color:#e65100;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;"><i class="fas fa-edit"></i></button>' +
+      '</td>' +
       '</tr>';
   }).join('');
 }
