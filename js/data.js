@@ -216,7 +216,7 @@ const DB = {
 };
 
 /* ---- Seed Data ---- */
-const SEED_VERSION = 'v5'; // bumped – added 15 veterinary medicines, purchases, sales
+const SEED_VERSION = 'v6'; // bumped to force re-seed
 
 function seedDatabase() {
     if (localStorage.getItem(DB.keys.initialized) === SEED_VERSION) return;
