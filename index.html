@@ -87,8 +87,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            if (App.getCurrentUser()) { window.location.href = 'dashboard.html'; return; }
-
             document.getElementById('togglePassword').addEventListener('click', function () {
                 var pwd = document.getElementById('password');
                 var icon = this.querySelector('i');
