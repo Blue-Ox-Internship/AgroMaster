@@ -44,25 +44,6 @@
         </div>
         <div class="pagination" id="pagination"></div>
       </div>
-      <div class="card" style="margin-top:20px;">
-        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-          <h3><i class="fas fa-pills"></i> Medicine Stock Overview</h3>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="search-box" style="margin:0;width:240px;">
-              <i class="fas fa-search"></i>
-              <input type="search" id="inventory-med-search" placeholder="Search medicines..." enterkeyhint="search" />
-            </div>
-          </div>
-        </div>
-        <div class="card-body" style="padding:0">
-          <div class="table-container">
-            <table>
-              <thead><tr><th>#</th><th>Medicine</th><th>Category</th><th>Batch</th><th>Stock</th><th>Unit Price</th><th>Stock Value</th><th>Expiry</th><th>Status</th></tr></thead>
-              <tbody id="inventory-medicines-table"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>`;
 
   initInventory();
@@ -88,56 +69,11 @@ function populateCategoryFilter() {
 
 function initInventory() {
   loadMeds();
-  loadMedicinesOverview();
   document.getElementById('add-med-btn').addEventListener('click', function () { openAddModal(); });
   document.getElementById('save-med-btn').addEventListener('click', saveMedicine);
   document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
-  document.getElementById('inventory-med-search').addEventListener('input', App.debounce(loadMedicinesOverview, 200));
-}
-
-function loadMedicinesOverview() {
-  const meds = DB.getMedicines();
-  const tbody = document.getElementById('inventory-medicines-table');
-  if (!tbody) return;
-  if (!meds.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:30px;color:#9e9e9e">No medicines in inventory.</td></tr>';
-    return;
-  }
-  const search = (document.getElementById('inventory-med-search').value || '').trim().toLowerCase();
-  const display = meds.filter(m => !search ||
-    m.medicine_name.toLowerCase().includes(search) ||
-    m.category.toLowerCase().includes(search) ||
-    (m.batch_number || '').toLowerCase().includes(search)
-  ).slice(0, 10);
-  if (!display.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:30px;color:#9e9e9e">No medicines found.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = display.map((m, i) => {
-    let badge = '';
-    if (App.isExpired(m.expiry_date)) badge = '<span class="badge badge-danger">Expired</span>';
-    else if (m.quantity === 0) badge = '<span class="badge badge-danger">Out of Stock</span>';
-    else if (m.quantity < 10) badge = '<span class="badge badge-warning">Low Stock</span>';
-    else if (App.isExpiringSoon(m.expiry_date, 30)) badge = '<span class="badge badge-warning">Expiring</span>';
-    else badge = '<span class="badge badge-success">In Stock</span>';
-    const days = App.daysUntilExpiry(m.expiry_date);
-    let expiryLabel = App.formatDate(m.expiry_date);
-    if (days !== null && days < 0) expiryLabel = '<span style="color:var(--danger);font-weight:600">Expired</span>';
-    else if (days !== null && days <= 30) expiryLabel = '<span style="color:var(--warning);font-weight:600">' + days + 'd left</span>';
-    return '<tr>' +
-      '<td style="color:#9e9e9e;font-size:12px">' + (i + 1) + '</td>' +
-      '<td><strong>' + m.medicine_name + '</strong></td>' +
-      '<td><span class="category-pill">' + m.category + '</span></td>' +
-      '<td style="font-size:12px;color:#616161">' + (m.batch_number || '—') + '</td>' +
-      '<td><strong style="font-size:15px">' + m.quantity + '</strong></td>' +
-      '<td class="ugx">' + App.formatCurrency(m.unit_price) + '</td>' +
-      '<td class="ugx"><strong>' + App.formatCurrency(m.quantity * m.unit_price) + '</strong></td>' +
-      '<td>' + expiryLabel + '</td>' +
-      '<td>' + badge + '</td>' +
-      '</tr>';
-  }).join('');
 }
 
 function loadMeds() { allMeds = DB.getMedicines(); populateCategoryFilter(); applyFilters(); }
