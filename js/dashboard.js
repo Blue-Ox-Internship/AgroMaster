@@ -173,6 +173,82 @@ function renderCategoryChart() {
 function loadAlerts() {
   const alerts = DB.getAlerts().slice(0, 6);
   const panel = document.getElementById('alerts-panel');
+  loadMedicinesOverview();
+  loadSuppliersOverview();
+  document.getElementById('dashboard-med-search').addEventListener('input', App.debounce(loadMedicinesOverview, 200));
+  document.getElementById('dashboard-sup-search').addEventListener('input', App.debounce(loadSuppliersOverview, 200));
+}
+
+function loadStats() {
+  const meds = DB.getMedicines();
+  const lowStock = meds.filter(m => m.quantity < 10).length;
+  const expiringSoon = meds.filter(m => App.isExpiringSoon(m.expiry_date, 30) || App.isExpired(m.expiry_date)).length;
+  const todaySalesTotal = DB.getTodaySalesTotal();
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card green" onclick="window.location.href='inventory.html'" style="cursor:pointer">
+      <div class="stat-icon green"><i class="fas fa-pills"></i></div>
+      <div class="stat-info"><h3>${meds.length}</h3><p>Medicines</p><span class="stat-change up"><i class="fas fa-boxes"></i> In stock</span></div>
+    </div>
+    <div class="stat-card orange" onclick="window.location.href='inventory.html'" style="cursor:pointer">
+      <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="stat-info"><h3>${lowStock}</h3><p>Low Stock</p>
+        <span class="stat-change ${lowStock > 0 ? 'down' : 'up'}">${lowStock > 0 ? '<i class="fas fa-arrow-down"></i> Reorder' : '<i class="fas fa-check"></i> Good'}</span>
+      </div>
+    </div>
+    <div class="stat-card red" onclick="window.location.href='inventory.html'" style="cursor:pointer">
+      <div class="stat-icon red"><i class="fas fa-calendar-times"></i></div>
+      <div class="stat-info"><h3>${expiringSoon}</h3><p>Expiring</p>
+        <span class="stat-change ${expiringSoon > 0 ? 'down' : 'up'}">${expiringSoon > 0 ? '<i class="fas fa-clock"></i> Check' : '<i class="fas fa-check"></i> Valid'}</span>
+      </div>
+    </div>
+    <div class="stat-card blue" onclick="window.location.href='sales.html'" style="cursor:pointer">
+      <div class="stat-icon blue"><i class="fas fa-cash-register"></i></div>
+      <div class="stat-info"><h3 style="font-size:18px;">${App.formatCurrency(todaySalesTotal)}</h3><p>Today</p>
+        <span class="stat-change up"><i class="fas fa-shopping-bag"></i> ${DB.getTodaySales().length} sales</span>
+      </div>
+    </div>`;
+}
+
+function renderSalesChart() {
+  const sales = DB.getSales();
+  const labels = [], data = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    labels.push(d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
+    data.push(sales.filter(s => s.sale_date === dateStr).reduce((sum, s) => sum + (s.total_amount || 0), 0));
+  }
+  new Chart(document.getElementById('salesChart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Sales (UGX)', data, borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2.5, pointBackgroundColor: '#2e7d32', pointRadius: 3, pointHoverRadius: 5, fill: true, tension: 0.4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'UGX ' + ctx.parsed.y.toLocaleString() } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, callback: v => 'UGX ' + (v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v) } }
+      }
+    }
+  });
+}
+
+function renderCategoryChart() {
+  const meds = DB.getMedicines();
+  const catMap = {};
+  meds.forEach(m => { catMap[m.category] = (catMap[m.category] || 0) + m.quantity; });
+  const colors = ['#2e7d32', '#43a047', '#66bb6a', '#0288d1', '#f57c00', '#c62828', '#8e24aa', '#00838f'];
+  new Chart(document.getElementById('categoryChart').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: Object.keys(catMap), datasets: [{ data: Object.values(catMap), backgroundColor: colors.slice(0, Object.keys(catMap).length), borderWidth: 3, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, usePointStyle: true } } }, cutout: '60%' }
+  });
+}
+
+function loadAlerts() {
+  const alerts = DB.getAlerts().slice(0, 6);
+  const panel = document.getElementById('alerts-panel');
   if (!panel) return;
   if (!alerts.length) {
     panel.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle" style="color:#66bb6a;font-size:40px;"></i><h3>All Clear!</h3></div>`;
@@ -180,7 +256,7 @@ function loadAlerts() {
   }
   const typeColor = { low_stock: 'warning', expiry: 'warning', expired: 'danger' };
   panel.innerHTML = alerts.map(a => `
-    <div class="alert-item">
+    <div class="alert-item clickable-row" onclick="window.location.href='inventory.html?view=${a.medicine_id}'" style="cursor:pointer">
       <div class="alert-dot ${typeColor[a.alert_type] || 'info'}"></div>
       <div class="alert-item-content">
         <p>${a.message}</p>
@@ -218,7 +294,7 @@ function loadMedicinesOverview() {
     let expiryLabel = App.formatDate(m.expiry_date);
     if (days !== null && days < 0) expiryLabel = '<span style="color:var(--danger);font-weight:600">Expired</span>';
     else if (days !== null && days <= 30) expiryLabel = '<span style="color:var(--warning);font-weight:600">' + days + 'd left</span>';
-    return '<tr class="clickable-row" onclick="window.location.href=\'inventory.html\'">' +
+    return '<tr class="clickable-row" onclick="window.location.href=\'inventory.html?view=' + m.medicine_id + '\'">' +
       '<td style="color:#9e9e9e;font-size:12px">' + (i + 1) + '</td>' +
       '<td><strong>' + m.medicine_name + '</strong></td>' +
       '<td><span class="category-pill">' + m.category + '</span></td>' +
@@ -227,58 +303,12 @@ function loadMedicinesOverview() {
       '<td class="ugx">' + App.formatCurrency(m.unit_price) + '</td>' +
       '<td class="ugx"><strong>' + App.formatCurrency(m.quantity * m.unit_price) + '</strong></td>' +
       '<td>' + expiryLabel + '</td>' +
-      '<td>' + badge + '</td>' +
-      '</tr>';
-  }).join('');
-}
-
-function loadSuppliersOverview() {
-  const sups = DB.getSuppliers();
-  const tbody = document.getElementById('suppliers-table');
-  if (!tbody) return;
-  if (!sups.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:30px;color:#9e9e9e">No suppliers found.</td></tr>';
-    return;
-  }
-  const search = (document.getElementById('dashboard-sup-search').value || '').trim().toLowerCase();
-  const display = sups.filter(s => !search ||
-    s.supplier_name.toLowerCase().includes(search) ||
-    (s.phone || '').toLowerCase().includes(search) ||
-    (s.email || '').toLowerCase().includes(search) ||
-    (s.address || '').toLowerCase().includes(search)
-  ).slice(0, 10);
-  if (!display.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:30px;color:#9e9e9e">No suppliers found.</td></tr>';
-    return;
-  }
-  const purchases = DB.getPurchases();
-  tbody.innerHTML = display.map(s => {
-    const purchaseCount = purchases.filter(p => p.supplier_id === s.supplier_id).length;
-    const addedDate = s.created_at
-      ? new Date(s.created_at).toLocaleDateString('en-UG', { day: '2-digit', month: 'short', year: 'numeric' })
-      : '—';
-    return '<tr class="clickable-row" onclick="window.location.href=\'suppliers.html\'">' +
-      '<td><strong>' + s.supplier_name + '</strong><br><span style="font-size:11px;color:#9e9e9e">' + purchaseCount + ' purchase' + (purchaseCount !== 1 ? 's' : '') + '</span></td>' +
-      '<td>' + (s.phone || '—') + '</td>' +
-      '<td>' + (s.email ? '<a href="mailto:' + s.email + '" style="color:var(--info)">' + s.email + '</a>' : '—') + '</td>' +
-      '<td style="font-size:13px;color:#616161">' + (s.address || '—') + '</td>' +
-      '<td><span style="font-size:12px;color:#616161"><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>' + addedDate + '</span></td>' +
-      '<td>' +
-        '<button class="btn btn-icon" title="View" onclick="event.stopPropagation();window.location.href=\'suppliers.html\'" style="background:#e3f2fd;color:#1565c0;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;"><i class="fas fa-eye"></i></button> ' +
-        '<button class="btn btn-icon btn-warning" title="Edit" onclick="event.stopPropagation();window.location.href=\'suppliers.html\'" style="background:#fff3e0;color:#e65100;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;"><i class="fas fa-edit"></i></button>' +
-      '</td>' +
-      '</tr>';
-  }).join('');
-}
-
-function loadRecentSales() {
-  const sales = DB.getSales().slice(-8).reverse();
   const meds = DB.getMedicines();
   const tbody = document.getElementById('recent-sales-table');
   if (!tbody) return;
   if (!sales.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding:30px;color:#9e9e9e">No sales recorded yet.</td></tr>'; return; }
   tbody.innerHTML = sales.map(s => {
     const med = meds.find(m => m.medicine_id === s.medicine_id);
-    return `<tr class="clickable-row" onclick="window.location.href='sales.html'"><td><strong>${med ? med.medicine_name : '—'}</strong></td><td>${s.quantity}</td><td class="ugx">${App.formatCurrency(s.total_amount)}</td><td>${App.formatDate(s.sale_date)}</td></tr>`;
+    return `<tr class="clickable-row" onclick="window.location.href='sales.html?view=${s.sale_id}'"><td><strong>${med ? med.medicine_name : '—'}</strong></td><td>${s.quantity}</td><td class="ugx">${App.formatCurrency(s.total_amount)}</td><td>${App.formatDate(s.sale_date)}</td></tr>`;
   }).join('');
 }
