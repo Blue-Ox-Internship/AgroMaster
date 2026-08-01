@@ -76,7 +76,12 @@ function initInventory() {
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
 }
 
-function loadMeds() { allMeds = DB.getMedicines(); populateCategoryFilter(); applyFilters(); }
+function loadMeds() {
+  if (!DB.getMedicines().length) { seedDatabase(); }
+  allMeds = DB.getMedicines();
+  populateCategoryFilter();
+  applyFilters();
+}
 
 function applyFilters() {
   const search = document.getElementById('search-input').value.toLowerCase();
