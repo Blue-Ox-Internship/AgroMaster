@@ -63,18 +63,8 @@ function renderSidebar(pageTitle, pageSubtitle) {
         ${navLink('reports.html', 'fa-chart-bar', 'Operations Reports')}
       </nav>
       <div class="sidebar-footer">
-        <div class="sidebar-user">
-          <div class="avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">${avatarContent}</div>
-          <div class="user-info">
-            <h4>${user.full_name}</h4>
-            <span>${user.role}</span>
-          </div>
-        </div>
-        <button class="btn-logout sidebar-logout" id="logout-btn">
+        <button class="btn-logout sidebar-logout" id="logout-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
           <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-        <button class="sidebar-logout" id="reset-db-btn" style="margin-top:10px; background:var(--warning-light); color:var(--warning); border:1.5px solid rgba(183, 110, 46, 0.2); width:100%; padding:10px 12px; border-radius:10px; font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:8px; transition:var(--transition);">
-          <i class="fas fa-sync-alt"></i> Reset System Data
         </button>
       </div>
     </aside>
@@ -90,12 +80,14 @@ function renderSidebar(pageTitle, pageSubtitle) {
             ${pageSubtitle ? `<p>${pageSubtitle}</p>` : ''}
           </div>
         </div>
-        <div class="topbar-right">
+        <div class="topbar-right" style="display:flex; align-items:center; gap:16px;">
           <button class="topbar-icon-btn" title="Alerts" onclick="window.location.href='reports.html'">
             <i class="fas fa-bell"></i>
             ${alertCount > 0 ? `<span class="notification-badge"></span>` : ''}
           </button>
-
+          <div class="topbar-avatar" style="width:36px; height:36px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; border:2px solid rgba(46, 125, 50, 0.15); background:var(--bg); flex-shrink:0;">
+            ${avatarContent}
+          </div>
         </div>
       </header>
       <div id="page-body"></div>
@@ -108,19 +100,6 @@ function renderSidebar(pageTitle, pageSubtitle) {
   // Logout
   document.getElementById('logout-btn').addEventListener('click', () => App.logout());
 
-  // Reset System Data
-  document.getElementById('reset-db-btn').addEventListener('click', async () => {
-    const ok = await Confirm.show({
-      title: 'Reset System Data?',
-      message: 'This will restore all default medicines, suppliers, sales, and purchases. Any current modifications will be lost.',
-      confirmText: 'Yes, Reset'
-    });
-    if (!ok) return;
-    localStorage.removeItem(DB.keys.initialized);
-    seedDatabase();
-    Toast.show('success', 'Reset Completed', 'Default system data has been restored.');
-    setTimeout(() => window.location.reload(), 1200);
-  });
 
   // Sidebar toggle
   const toggle = document.getElementById('sidebar-toggle');
