@@ -10,6 +10,7 @@
 
   document.getElementById('page-body').innerHTML = `
     <div class="page-content">
+      <div class="report-summary" id="stock-summary"></div>
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
@@ -94,6 +95,22 @@ function initInventory() {
 function loadMeds() {
   if (!DB.getMedicines().length) { seedDatabase(); }
   allMeds = DB.getMedicines();
+
+  // Calculate stats for summary cards
+  const totalValue = allMeds.reduce((sum, m) => sum + (m.quantity * m.unit_price), 0);
+  const lowStock = allMeds.filter(m => m.quantity < 10 && m.quantity > 0).length;
+  const outOfStock = allMeds.filter(m => m.quantity === 0).length;
+
+  const summaryEl = document.getElementById('stock-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="summary-card"><span class="value">${allMeds.length}</span><div class="label">Total Medicines</div></div>
+      <div class="summary-card"><span class="value">${App.formatCurrency(totalValue)}</span><div class="label">Total Stock Value</div></div>
+      <div class="summary-card"><span class="value" style="color:var(--warning)">${lowStock}</span><div class="label">Low Stock Items</div></div>
+      <div class="summary-card"><span class="value" style="color:var(--danger)">${outOfStock}</span><div class="label">Out of Stock</div></div>
+    `;
+  }
+
   populateCategoryFilter();
   applyFilters();
 }

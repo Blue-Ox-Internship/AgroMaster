@@ -10,6 +10,7 @@
 
   document.getElementById('page-body').innerHTML = `
     <div class="page-content">
+      <div class="report-summary" id="supplier-summary"></div>
       <div class="toolbar">
         <div class="search-box">
           <i class="fas fa-search"></i>
@@ -26,6 +27,7 @@
           <table>
             <thead>
               <tr>
+                <th>#</th>
                 <th>Supplier Name</th>
                 <th>Phone</th>
                 <th>Email</th>
@@ -64,18 +66,30 @@ function renderTable() {
   );
   document.getElementById('sup-count').textContent = `${filtered.length} supplier${filtered.length !== 1 ? 's' : ''}`;
   const tbody = document.getElementById('sup-table');
+  const purchases = DB.getPurchases();
+  const totalSpent = purchases.reduce((sum, p) => sum + (p.quantity * p.buying_price), 0);
+
+  const summaryEl = document.getElementById('supplier-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="summary-card"><span class="value">${allSups.length}</span><div class="label">Total Suppliers</div></div>
+      <div class="summary-card"><span class="value">${purchases.length}</span><div class="label">Total Purchase Orders</div></div>
+      <div class="summary-card"><span class="value">${App.formatCurrency(totalSpent)}</span><div class="label">Total Spent</div></div>
+    `;
+  }
+
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-truck"></i><h3>No suppliers found</h3></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-truck"></i><h3>No suppliers found</h3></div></td></tr>`;
     return;
   }
-  const purchases = DB.getPurchases();
-  tbody.innerHTML = filtered.map(s => {
+  tbody.innerHTML = filtered.map((s, i) => {
     const purchaseCount = purchases.filter(p => p.supplier_id === s.supplier_id).length;
     const addedDate = s.created_at
       ? new Date(s.created_at).toLocaleDateString('en-UG', { day: '2-digit', month: 'short', year: 'numeric' })
       : '—';
     return `
       <tr class="clickable-row" onclick="viewSupplier('${s.supplier_id}')">
+        <td style="color:#9e9e9e;font-size:12px;">${i + 1}</td>
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:36px;height:36px;background:var(--success-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);flex-shrink:0;">${s.supplier_name.charAt(0).toUpperCase()}</div>
