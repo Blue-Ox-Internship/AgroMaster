@@ -70,6 +70,9 @@ function renderSidebar(pageTitle, pageSubtitle) {
         <button class="btn-logout sidebar-logout" id="logout-btn">
           <i class="fas fa-sign-out-alt"></i> Logout
         </button>
+        <button class="sidebar-logout" id="reset-db-btn" style="margin-top:10px; background:var(--warning-light); color:var(--warning); border:1.5px solid rgba(183, 110, 46, 0.2); width:100%; padding:10px 12px; border-radius:10px; font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:8px; transition:var(--transition);">
+          <i class="fas fa-sync-alt"></i> Reset System Data
+        </button>
       </div>
     </aside>
 
@@ -101,6 +104,20 @@ function renderSidebar(pageTitle, pageSubtitle) {
 
   // Logout
   document.getElementById('logout-btn').addEventListener('click', () => App.logout());
+
+  // Reset System Data
+  document.getElementById('reset-db-btn').addEventListener('click', async () => {
+    const ok = await Confirm.show({
+      title: 'Reset System Data?',
+      message: 'This will restore all default medicines, suppliers, sales, and purchases. Any current modifications will be lost.',
+      confirmText: 'Yes, Reset'
+    });
+    if (!ok) return;
+    localStorage.removeItem(DB.keys.initialized);
+    seedDatabase();
+    Toast.show('success', 'Reset Completed', 'Default system data has been restored.');
+    setTimeout(() => window.location.reload(), 1200);
+  });
 
   // Sidebar toggle
   const toggle = document.getElementById('sidebar-toggle');
