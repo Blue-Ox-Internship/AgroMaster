@@ -226,9 +226,9 @@ function seedDatabase() {
     // Users
     const users = [
         {
-            user_id: 'usr_admin', full_name: 'Dr. Sarah Nakato', business_name: 'AgroDrop Uganda Ltd',
+            user_id: 'usr_admin', full_name: 'Akanyihayo Arthur', business_name: 'AgroDrop Uganda Ltd',
             email: 'admin@agrodrop.com', phone: '+256 700 123456', password: 'admin123',
-            role: 'Administrator', created_at: '2024-01-10T08:00:00.000Z'
+            role: 'Administrator', avatar_url: 'images/arthur.jpg', created_at: '2024-01-10T08:00:00.000Z'
         },
         {
             user_id: 'usr_manager', full_name: 'John Ssebunya', business_name: 'AgroDrop Uganda Ltd',
@@ -444,6 +444,19 @@ function seedDatabase() {
     DB.checkAndGenerateAlerts();
 
     localStorage.setItem(DB.keys.initialized, SEED_VERSION);
+
+    // Sync logged-in session details if admin
+    try {
+        const session = JSON.parse(localStorage.getItem('agrodrop_current_user'));
+        if (session && session.user_id === 'usr_admin') {
+            session.full_name = 'Akanyihayo Arthur';
+            session.avatar_url = 'images/arthur.jpg';
+            localStorage.setItem('agrodrop_current_user', JSON.stringify(session));
+        }
+    } catch (e) {
+        console.error('Failed to sync session:', e);
+    }
+
     console.log('AgroDrop database seeded successfully.');
 }
 

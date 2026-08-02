@@ -1,12 +1,13 @@
-﻿module.exports = [
+module.exports = [
     {
         user_id: 'usr_admin',
-        full_name: 'Dr. Sarah Nakato',
+        full_name: 'Akanyihayo Arthur',
         business_name: 'AgroDrop Uganda Ltd',
         email: 'admin@agrodrop.com',
         phone: '+256 700 123456',
         password: 'admin123',
-        role: 'Administrator'
+        role: 'Administrator',
+        avatar_url: 'images/arthur.jpg'
     },
     {
         user_id: 'usr_manager',

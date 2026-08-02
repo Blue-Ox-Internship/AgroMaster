@@ -7,6 +7,9 @@ function renderSidebar(pageTitle, pageSubtitle) {
   if (!user) return;
 
   const avatarLetter = user.full_name.charAt(0).toUpperCase();
+  const avatarContent = user.avatar_url 
+    ? `<img src="${user.avatar_url}" alt="${user.full_name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`
+    : avatarLetter;
   const alerts = DB.getAlerts().filter(a => a.status === 'unread');
   const alertCount = alerts.length;
   const page = window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
@@ -61,7 +64,7 @@ function renderSidebar(pageTitle, pageSubtitle) {
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user">
-          <div class="avatar">${avatarLetter}</div>
+          <div class="avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">${avatarContent}</div>
           <div class="user-info">
             <h4>${user.full_name}</h4>
             <span>${user.role}</span>
