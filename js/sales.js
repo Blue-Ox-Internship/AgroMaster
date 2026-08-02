@@ -35,7 +35,6 @@
         <div class="pagination" id="pagination"></div>
       </div>
     </div>`;
-
   document.getElementById('sale-date').value = App.today();
   document.getElementById('add-sale-btn').addEventListener('click', openSaleModal);
   document.getElementById('save-sale-btn').addEventListener('click', saveSale);
@@ -43,6 +42,13 @@
   document.getElementById('date-filter').addEventListener('change', applyFilters);
   loadSalesStats();
   loadSales();
+
+  // Handle URL deep links for viewing sale details
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewId = urlParams.get('view');
+  if (viewId) {
+    viewSale(viewId);
+  }
 })();
 
 let allSales = [], filteredSales = [], currentPage = 1;

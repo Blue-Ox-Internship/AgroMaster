@@ -74,6 +74,21 @@ function initInventory() {
   document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
+
+  // Handle URL deep links and filters
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewId = urlParams.get('view');
+  if (viewId) {
+    viewMedicine(viewId);
+  }
+  const stockLevel = urlParams.get('stock-level');
+  if (stockLevel) {
+    const stockFilterSelect = document.getElementById('stock-filter');
+    if (stockFilterSelect) {
+      stockFilterSelect.value = stockLevel;
+      applyFilters();
+    }
+  }
 }
 
 function loadMeds() {
