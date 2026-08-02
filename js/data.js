@@ -219,7 +219,7 @@ const DB = {
 const SEED_VERSION = 'v7'; // bumped to force re-seed
 
 function seedDatabase() {
-    if (localStorage.getItem(DB.keys.initialized) === SEED_VERSION) return;
+    if (localStorage.getItem(DB.keys.initialized) === SEED_VERSION && DB.getMedicines().length > 0) return;
     // Clear old data to ensure fresh seed
     Object.values(DB.keys).forEach(k => localStorage.removeItem(k));
 
