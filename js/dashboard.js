@@ -106,11 +106,21 @@
 let allMeds = [], allSales = [], allPurchases = [], allAlerts = [], allSups = [];
 
 async function loadDashboard() {
-  const alertsPanel = document.getElementById('alerts-panel');
-  if (alertsPanel) alertsPanel.innerHTML = '<div style="text-align:center;padding:30px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-  document.getElementById('recent-sales-table').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
-  document.getElementById('recent-purchases-table').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+  // Load instantly from cache
+  allMeds = DB.getMedicines();
+  allSales = DB.getSales();
+  allPurchases = DB.getPurchases();
+  allAlerts = DB.getAlerts();
+  allSups = DB.getSuppliers();
 
+  loadStats();
+  renderSalesChart();
+  renderCategoryChart();
+  loadAlerts();
+  loadRecentSales();
+  loadRecentPurchases();
+
+  // Sync with API in the background
   try {
     const results = await Promise.all([
       API.getMedicines(),
@@ -119,26 +129,35 @@ async function loadDashboard() {
       API.getAlerts(),
       API.getSuppliers()
     ]);
-    allMeds = results[0];
-    allSales = results[1];
-    allPurchases = results[2];
-    allAlerts = results[3];
-    allSups = results[4];
-  } catch (err) {
-    console.error('Failed to load dashboard data from API, using local storage fallback', err);
-    allMeds = DB.getMedicines();
-    allSales = DB.getSales();
-    allPurchases = DB.getPurchases();
-    allAlerts = DB.getAlerts();
-    allSups = DB.getSuppliers();
-  }
+    const serverMeds = results[0];
+    const serverSales = results[1];
+    const serverPurchases = results[2];
+    const serverAlerts = results[3];
+    const serverSups = results[4];
 
-  loadStats();
-  renderSalesChart();
-  renderCategoryChart();
-  loadAlerts();
-  loadRecentSales();
-  loadRecentPurchases();
+    if (serverMeds && serverSales && serverPurchases && serverAlerts && serverSups) {
+      allMeds = serverMeds;
+      allSales = serverSales;
+      allPurchases = serverPurchases;
+      allAlerts = serverAlerts;
+      allSups = serverSups;
+
+      DB.saveMedicines(serverMeds);
+      DB.saveSales(serverSales);
+      DB.savePurchases(serverPurchases);
+      DB.saveAlerts(serverAlerts);
+      DB.saveSuppliers(serverSups);
+
+      loadStats();
+      renderSalesChart();
+      renderCategoryChart();
+      loadAlerts();
+      loadRecentSales();
+      loadRecentPurchases();
+    }
+  } catch (err) {
+    console.warn('Failed to load dashboard data from server API', err);
+  }
 
   const markAlertsBtn = document.getElementById('mark-all-alerts-btn');
   if (markAlertsBtn) {

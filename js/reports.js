@@ -274,13 +274,37 @@ async function initReports() {
     App.exportToCSV('alerts_report.csv', headers, rows);
   });
 
-  await loadReportsData();
+  // Load instantly from local cache first
+  allMeds = DB.getMedicines();
+  allSales = DB.getSales();
+  allPurchases = DB.getPurchases();
+  allSuppliers = DB.getSuppliers();
+  allAlerts = DB.getAlerts();
 
   loadStockReport(); 
   loadSalesReport(); 
   loadExpiryReport(); 
   loadSupplierReport(); 
   loadAlertsReport();
+
+  // Revalidate from server API in the background
+  try {
+    await loadReportsData();
+    
+    DB.saveMedicines(allMeds);
+    DB.saveSales(allSales);
+    DB.savePurchases(allPurchases);
+    DB.saveSuppliers(allSuppliers);
+    DB.saveAlerts(allAlerts);
+
+    loadStockReport(); 
+    loadSalesReport(); 
+    loadExpiryReport(); 
+    loadSupplierReport(); 
+    loadAlertsReport();
+  } catch (err) {
+    console.warn('Failed to sync reports data from server API', err);
+  }
 }
 
 function loadStockReport() {

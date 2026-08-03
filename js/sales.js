@@ -105,17 +105,26 @@ async function loadSalesStats() {
 }
 
 async function loadSales() {
-  document.getElementById('sales-table').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading sales...</td></tr>`;
-  try {
-    allMeds = await API.getMedicines();
-    const sales = await API.getSales();
-    allSales = sales.slice().reverse();
-  } catch (err) {
-    console.error('Failed to load sales data', err);
-    allMeds = DB.getMedicines();
-    allSales = DB.getSales().slice().reverse();
-  }
+  // Load instantly from cache
+  allMeds = DB.getMedicines();
+  allSales = DB.getSales().slice().reverse();
   applyFilters();
+
+  // Sync with API in the background
+  try {
+    const results = await Promise.all([API.getMedicines(), API.getSales()]);
+    const serverMeds = results[0];
+    const serverSales = results[1];
+    if (serverMeds && serverSales) {
+      allMeds = serverMeds;
+      allSales = serverSales.slice().reverse();
+      DB.saveMedicines(serverMeds);
+      DB.saveSales(serverSales);
+      applyFilters();
+    }
+  } catch (err) {
+    console.warn('Failed to sync sales from server API', err);
+  }
 }
 
 function applyFilters() {

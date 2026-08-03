@@ -120,17 +120,24 @@ async function initInventory() {
 }
 
 async function loadMeds() {
-  // Show skeleton loading style visually while load completes
-  document.getElementById('meds-table').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading medicines...</td></tr>`;
-  
-  try {
-    allMeds = await API.getMedicines();
-  } catch (err) {
-    console.error('Failed to load medicines from server API', err);
-    if (!DB.getMedicines().length) { seedDatabase(); }
-    allMeds = DB.getMedicines();
-  }
+  // Load instantly from cache
+  allMeds = DB.getMedicines();
+  renderStatsAndFilters();
 
+  // Sync with API in the background
+  try {
+    const serverMeds = await API.getMedicines();
+    if (serverMeds && Array.isArray(serverMeds)) {
+      allMeds = serverMeds;
+      DB.saveMedicines(serverMeds);
+      renderStatsAndFilters();
+    }
+  } catch (err) {
+    console.warn('Failed to load medicines from server API', err);
+  }
+}
+
+function renderStatsAndFilters() {
   // Calculate stats for summary cards
   const totalValue = allMeds.reduce((sum, m) => sum + (m.quantity * m.unit_price), 0);
   const lowStock = allMeds.filter(m => m.quantity < 10 && m.quantity > 0).length;

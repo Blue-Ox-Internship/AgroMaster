@@ -94,19 +94,34 @@ async function loadPurchaseStats() {
 }
 
 async function loadPurchases() {
-  document.getElementById('pur-table').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading purchases...</td></tr>`;
-  try {
-    allMeds = await API.getMedicines();
-    allSups = await API.getSuppliers();
-    const purchases = await API.getPurchases();
-    allPurchases = purchases.slice().reverse();
-  } catch (err) {
-    console.error('Failed to load purchases data', err);
-    allMeds = DB.getMedicines();
-    allSups = DB.getSuppliers();
-    allPurchases = DB.getPurchases().slice().reverse();
-  }
+  // Load instantly from cache
+  allMeds = DB.getMedicines();
+  allSups = DB.getSuppliers();
+  allPurchases = DB.getPurchases().slice().reverse();
   applyFilters();
+
+  // Sync with API in the background
+  try {
+    const results = await Promise.all([
+      API.getMedicines(),
+      API.getSuppliers(),
+      API.getPurchases()
+    ]);
+    const serverMeds = results[0];
+    const serverSups = results[1];
+    const serverPurchases = results[2];
+    if (serverMeds && serverSups && serverPurchases) {
+      allMeds = serverMeds;
+      allSups = serverSups;
+      allPurchases = serverPurchases.slice().reverse();
+      DB.saveMedicines(serverMeds);
+      DB.saveSuppliers(serverSups);
+      DB.savePurchases(serverPurchases);
+      applyFilters();
+    }
+  } catch (err) {
+    console.warn('Failed to sync purchases from server API', err);
+  }
 }
 
 function applyFilters() {

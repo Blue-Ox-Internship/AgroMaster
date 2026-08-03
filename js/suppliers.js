@@ -75,14 +75,21 @@ async function initSuppliers() {
 }
 
 async function loadSuppliers() {
-  document.getElementById('sup-table').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading suppliers...</td></tr>`;
-  try {
-    allSups = await API.getSuppliers();
-  } catch (err) {
-    console.error('Failed to load suppliers', err);
-    allSups = DB.getSuppliers();
-  }
+  // Load instantly from cache
+  allSups = DB.getSuppliers();
   renderTable();
+
+  // Sync with API in the background
+  try {
+    const serverSups = await API.getSuppliers();
+    if (serverSups && Array.isArray(serverSups)) {
+      allSups = serverSups;
+      DB.saveSuppliers(serverSups);
+      renderTable();
+    }
+  } catch (err) {
+    console.warn('Failed to load suppliers from server API', err);
+  }
 }
 
 function renderTable() {
