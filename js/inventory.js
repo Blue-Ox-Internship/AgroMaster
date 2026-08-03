@@ -25,6 +25,7 @@
           <option value="expiring">Expiring Soon</option>
           <option value="expired">Expired</option>
         </select>
+        <button class="btn btn-secondary" id="export-csv-btn" style="margin-left:auto;"><i class="fas fa-file-csv"></i> Export CSV</button>
         <button class="btn btn-primary" id="add-med-btn"><i class="fas fa-plus"></i> Add Medicine</button>
       </div>
       <div class="card">
@@ -68,13 +69,27 @@ function populateCategoryFilter() {
   if (cur) sel.value = cur;
 }
 
-function initInventory() {
-  loadMeds();
+async function initInventory() {
+  await loadMeds();
   document.getElementById('add-med-btn').addEventListener('click', function () { openAddModal(); });
   document.getElementById('save-med-btn').addEventListener('click', saveMedicine);
   document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
+
+  document.getElementById('export-csv-btn').addEventListener('click', () => {
+    const headers = ['Medicine Name', 'Category', 'Batch No', 'Expiry Date', 'Quantity', 'Unit Price', 'Stock Value'];
+    const rows = filteredMeds.map(m => [
+      m.medicine_name,
+      m.category,
+      m.batch_number || '',
+      m.expiry_date || '',
+      m.quantity,
+      m.unit_price,
+      m.quantity * m.unit_price
+    ]);
+    App.exportToCSV('medicines_inventory.csv', headers, rows);
+  });
 
   document.getElementById('med-category').addEventListener('change', function () {
     const newCatInput = document.getElementById('med-new-category');
@@ -104,9 +119,17 @@ function initInventory() {
   }
 }
 
-function loadMeds() {
-  if (!DB.getMedicines().length) { seedDatabase(); }
-  allMeds = DB.getMedicines();
+async function loadMeds() {
+  // Show skeleton loading style visually while load completes
+  document.getElementById('meds-table').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading medicines...</td></tr>`;
+  
+  try {
+    allMeds = await API.getMedicines();
+  } catch (err) {
+    console.error('Failed to load medicines from server API', err);
+    if (!DB.getMedicines().length) { seedDatabase(); }
+    allMeds = DB.getMedicines();
+  }
 
   // Calculate stats for summary cards
   const totalValue = allMeds.reduce((sum, m) => sum + (m.quantity * m.unit_price), 0);
@@ -183,7 +206,7 @@ function renderTable() {
         </td>
       </tr>`;
   }).join('');
-  renderPagination();
+  App.renderPagination('pagination', currentPage, filteredMeds.length, PAGE_SIZE, goPage);
 }
 
 function formatExpiry(dateStr) {
@@ -200,21 +223,6 @@ function getStatus(m) {
   if (m.quantity === 0) return '<span class="badge badge-danger">Out of Stock</span>';
   if (m.quantity < 10) return '<span class="badge badge-warning">Low Stock</span>';
   return '<span class="badge badge-success">In Stock</span>';
-}
-
-function renderPagination() {
-  const total = filteredMeds.length, totalPages = Math.ceil(total / PAGE_SIZE);
-  if (totalPages <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
-  const start = (currentPage - 1) * PAGE_SIZE + 1, end = Math.min(currentPage * PAGE_SIZE, total);
-  let pages = '';
-  for (let p = 1; p <= totalPages; p++) pages += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
-  document.getElementById('pagination').innerHTML = `
-    <span class="pagination-info">Showing ${start}–${end} of ${total}</span>
-    <div class="pagination-controls">
-      <button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
-      ${pages}
-      <button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
-    </div>`;
 }
 
 function goPage(p) {
@@ -246,7 +254,7 @@ function openAddModal() {
 }
 
 function openEditModal(id) {
-  const med = DB.getMedicineById(id);
+  const med = allMeds.find(m => m.medicine_id === id);
   if (!med) return;
   editingId = id;
   document.getElementById('modal-title').textContent = 'Edit Medicine';
@@ -264,7 +272,7 @@ function openEditModal(id) {
   Modal.open('med-modal');
 }
 
-function saveMedicine() {
+async function saveMedicine() {
   const name = document.getElementById('med-name').value.trim();
   let category = document.getElementById('med-category').value;
   if (category === '__new__') {
@@ -277,13 +285,13 @@ function saveMedicine() {
     Toast.show('error', 'Validation Error', 'Please fill in all required fields.'); return;
   }
   const data = { medicine_name: name, category, manufacturer: document.getElementById('med-manufacturer').value.trim(), batch_number: document.getElementById('med-batch').value.trim(), expiry_date: expiry, quantity: qty, unit_price: price, description: document.getElementById('med-desc').value.trim() };
-  if (editingId) { DB.updateMedicine(editingId, data); Toast.show('success', 'Updated!', `${name} has been updated.`); }
-  else { DB.addMedicine(data); Toast.show('success', 'Added!', `${name} added to inventory.`); }
-  Modal.close('med-modal'); loadMeds();
+  if (editingId) { await API.updateMedicine(editingId, data); Toast.show('success', 'Updated!', `${name} has been updated.`); }
+  else { await API.addMedicine(data); Toast.show('success', 'Added!', `${name} added to inventory.`); }
+  Modal.close('med-modal'); await loadMeds();
 }
 
 function viewMedicine(id) {
-  const med = DB.getMedicineById(id);
+  const med = allMeds.find(m => m.medicine_id === id);
   if (!med) return;
   const days = App.daysUntilExpiry(med.expiry_date);
   document.getElementById('view-modal-body').innerHTML = `
@@ -307,11 +315,11 @@ function viewMedicine(id) {
 }
 
 async function deleteMedicine(id) {
-  const med = DB.getMedicineById(id);
+  const med = allMeds.find(m => m.medicine_id === id);
   if (!med) return;
   const ok = await Confirm.show({ title: 'Delete Medicine?', message: `Delete <strong>${med.medicine_name}</strong>? This cannot be undone.`, confirmText: 'Yes, Delete' });
   if (!ok) return;
-  DB.deleteMedicine(id);
+  await API.deleteMedicine(id);
   Toast.show('success', 'Deleted', `${med.medicine_name} removed from inventory.`);
-  loadMeds();
+  await loadMeds();
 }

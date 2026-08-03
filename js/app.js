@@ -86,6 +86,48 @@ const App = {
         };
     },
 
+    renderPagination(containerId, currentPage, total, pageSize, onPageChange) {
+        const totalPages = Math.ceil(total / pageSize);
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        if (totalPages <= 1) { el.innerHTML = ''; return; }
+        const start = (currentPage - 1) * pageSize + 1, end = Math.min(currentPage * pageSize, total);
+        let pages = '';
+        
+        const callbackName = `pg_cb_${containerId}`;
+        window[callbackName] = onPageChange;
+        
+        for (let p = 1; p <= totalPages; p++) {
+            pages += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="window.${callbackName}(${p})">${p}</button>`;
+        }
+        el.innerHTML = `
+            <span class="pagination-info">Showing ${start}–${end} of ${total}</span>
+            <div class="pagination-controls">
+              <button class="page-btn" onclick="window.${callbackName}(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+              ${pages}
+              <button class="page-btn" onclick="window.${callbackName}(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+            </div>`;
+    },
+
+    exportToCSV(filename, headers, rows) {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += headers.join(",") + "\r\n";
+        rows.forEach(row => {
+            const escapedRow = row.map(value => {
+                const str = String(value ?? '').replace(/"/g, '""');
+                return `"${str}"`;
+            });
+            csvContent += escapedRow.join(",") + "\r\n";
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
 };
 
 // ---- Toast Notifications ----

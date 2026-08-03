@@ -32,6 +32,23 @@
     --transition: all 0.3s ease;
 }
 
+body.dark-theme {
+    --bg: #121212;
+    --white: #1e1e1e;
+    --text: #e0e0e0;
+    --text-light: #a0a0a0;
+    --border: #333333;
+    --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --warning-light: #2d1f10;
+    --success-light: #0d2a13;
+    --danger-light: #2c0e0e;
+    --info-light: #0a2130;
+    --sidebar: #0f3d13;
+    --sidebar-hover: #1b5e20;
+}
+
 /* ---- Reset & Base ---- */
 *,
 *::before,

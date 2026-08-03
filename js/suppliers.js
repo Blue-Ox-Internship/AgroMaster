@@ -16,6 +16,7 @@
           <i class="fas fa-search"></i>
           <input type="search" id="search-input" placeholder="Search suppliers..." enterkeyhint="search" />
         </div>
+        <button class="btn btn-secondary" id="export-csv-btn" style="margin-left:auto;"><i class="fas fa-file-csv"></i> Export CSV</button>
         <button class="btn btn-primary" id="add-sup-btn"><i class="fas fa-plus"></i> Add Supplier</button>
       </div>
       <div class="card">
@@ -47,14 +48,42 @@
 
 let allSups = [], editingId = null;
 
-function initSuppliers() {
-  loadSuppliers();
+async function initSuppliers() {
+  await loadSuppliers();
   document.getElementById('add-sup-btn').addEventListener('click', openAddModal);
   document.getElementById('save-sup-btn').addEventListener('click', saveSupplier);
   document.getElementById('search-input').addEventListener('input', App.debounce(renderTable, 200));
+
+  document.getElementById('export-csv-btn').addEventListener('click', () => {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const filtered = allSups.filter(s =>
+      s.supplier_name.toLowerCase().includes(search) ||
+      (s.phone || '').toLowerCase().includes(search) ||
+      (s.email || '').toLowerCase().includes(search) ||
+      (s.address || '').toLowerCase().includes(search)
+    );
+    const headers = ['Supplier Name', 'Phone', 'Email', 'Address', 'Date Added'];
+    const rows = filtered.map(s => [
+      s.supplier_name,
+      s.phone || '',
+      s.email || '',
+      s.address || '',
+      s.created_at ? App.formatDate(s.created_at) : ''
+    ]);
+    App.exportToCSV('suppliers.csv', headers, rows);
+  });
 }
 
-function loadSuppliers() { allSups = DB.getSuppliers(); renderTable(); }
+async function loadSuppliers() {
+  document.getElementById('sup-table').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading suppliers...</td></tr>`;
+  try {
+    allSups = await API.getSuppliers();
+  } catch (err) {
+    console.error('Failed to load suppliers', err);
+    allSups = DB.getSuppliers();
+  }
+  renderTable();
+}
 
 function renderTable() {
   const search = document.getElementById('search-input').value.toLowerCase();
@@ -135,7 +164,7 @@ function openAddModal() {
 }
 
 function openEditModal(id) {
-  const sup = DB.getSupplierById(id);
+  const sup = allSups.find(s => s.supplier_id === id);
   if (!sup) return;
   editingId = id;
   document.getElementById('modal-title').textContent = 'Edit Supplier';
@@ -147,7 +176,7 @@ function openEditModal(id) {
   Modal.open('sup-modal');
 }
 
-function saveSupplier() {
+async function saveSupplier() {
   const name = document.getElementById('sup-name').value.trim();
   const phone = document.getElementById('sup-phone').value.trim();
   if (!name || !phone) {
@@ -161,18 +190,18 @@ function saveSupplier() {
     address: document.getElementById('sup-address').value.trim()
   };
   if (editingId) {
-    DB.updateSupplier(editingId, data);
+    await API.updateSupplier(editingId, data);
     Toast.show('success', 'Updated!', `${name} has been updated.`);
   } else {
-    DB.addSupplier(data);
+    await API.addSupplier(data);
     Toast.show('success', 'Added!', `${name} added to suppliers.`);
   }
   Modal.close('sup-modal');
-  loadSuppliers();
+  await loadSuppliers();
 }
 
 function viewSupplier(id) {
-  const sup = DB.getSupplierById(id);
+  const sup = allSups.find(s => s.supplier_id === id);
   if (!sup) return;
   const purchases = DB.getPurchases().filter(p => p.supplier_id === id);
   const totalSpent = purchases.reduce((sum, p) => sum + (parseInt(p.quantity) * parseFloat(p.buying_price || 0)), 0);
@@ -220,7 +249,7 @@ function viewSupplier(id) {
 }
 
 async function deleteSupplier(id) {
-  const sup = DB.getSupplierById(id);
+  const sup = allSups.find(s => s.supplier_id === id);
   if (!sup) return;
   const ok = await Confirm.show({
     title: 'Delete Supplier?',
@@ -228,7 +257,7 @@ async function deleteSupplier(id) {
     confirmText: 'Yes, Delete'
   });
   if (!ok) return;
-  DB.deleteSupplier(id);
+  await API.deleteSupplier(id);
   Toast.show('success', 'Deleted', `${sup.supplier_name} removed.`);
-  loadSuppliers();
+  await loadSuppliers();
 }

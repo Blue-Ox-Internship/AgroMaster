@@ -119,6 +119,9 @@ function renderSidebar(pageTitle, pageSubtitle) {
           ${headerTitleHtml}
         </div>
         <div class="topbar-right" style="display:flex; align-items:center; gap:16px;">
+          <button class="topbar-icon-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode" style="border:none; cursor:pointer;">
+            <i class="fas fa-moon"></i>
+          </button>
           <button class="topbar-icon-btn" title="Alerts" onclick="window.location.href='reports.html'">
             <i class="fas fa-bell"></i>
             ${alertCount > 0 ? `<span class="notification-badge"></span>` : ''}
@@ -153,6 +156,22 @@ function renderSidebar(pageTitle, pageSubtitle) {
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
   });
+
+  // Theme Toggle Logic
+  const themeToggle = document.getElementById('theme-toggle-btn');
+  if (themeToggle) {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      document.body.classList.add('dark-theme');
+      themeToggle.querySelector('i').className = 'fas fa-sun';
+    }
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      const isDark = document.body.classList.contains('dark-theme');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      themeToggle.querySelector('i').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    });
+  }
 }
 
 

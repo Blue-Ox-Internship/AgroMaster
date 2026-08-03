@@ -54,7 +54,7 @@
         <div class="card">
           <div class="card-header">
             <h3><i class="fas fa-bell"></i> Recent Alerts</h3>
-            <button class="btn btn-sm btn-secondary" onclick="DB.markAllAlertsRead(); loadAlerts();">Mark All Read</button>
+            <button class="btn btn-sm btn-secondary" id="mark-all-alerts-btn">Mark All Read</button>
           </div>
           <div class="card-body" id="alerts-panel"></div>
         </div>
@@ -103,26 +103,65 @@
   loadDashboard();
 })();
 
-function loadDashboard() {
+let allMeds = [], allSales = [], allPurchases = [], allAlerts = [], allSups = [];
+
+async function loadDashboard() {
+  const alertsPanel = document.getElementById('alerts-panel');
+  if (alertsPanel) alertsPanel.innerHTML = '<div style="text-align:center;padding:30px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  document.getElementById('recent-sales-table').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+  document.getElementById('recent-purchases-table').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+  try {
+    const results = await Promise.all([
+      API.getMedicines(),
+      API.getSales(),
+      API.getPurchases(),
+      API.getAlerts(),
+      API.getSuppliers()
+    ]);
+    allMeds = results[0];
+    allSales = results[1];
+    allPurchases = results[2];
+    allAlerts = results[3];
+    allSups = results[4];
+  } catch (err) {
+    console.error('Failed to load dashboard data from API, using local storage fallback', err);
+    allMeds = DB.getMedicines();
+    allSales = DB.getSales();
+    allPurchases = DB.getPurchases();
+    allAlerts = DB.getAlerts();
+    allSups = DB.getSuppliers();
+  }
+
   loadStats();
   renderSalesChart();
   renderCategoryChart();
   loadAlerts();
   loadRecentSales();
   loadRecentPurchases();
+
+  const markAlertsBtn = document.getElementById('mark-all-alerts-btn');
+  if (markAlertsBtn) {
+    markAlertsBtn.addEventListener('click', async () => {
+      await API.markAllAlertsRead();
+      loadDashboard();
+    });
+  }
 }
 
 function loadStats() {
-  const meds = DB.getMedicines();
-  const lowStock = meds.filter(m => m.quantity < 10).length;
-  const expiringSoon = meds.filter(m => App.isExpiringSoon(m.expiry_date, 30) || App.isExpired(m.expiry_date)).length;
-  const todaySalesTotal = DB.getTodaySalesTotal();
+  const lowStock = allMeds.filter(m => m.quantity < 10).length;
+  const expiringSoon = allMeds.filter(m => App.isExpiringSoon(m.expiry_date, 30) || App.isExpired(m.expiry_date)).length;
+  
+  const today = App.today();
+  const todaySales = allSales.filter(s => s.sale_date === today);
+  const todaySalesTotal = todaySales.reduce((sum, s) => sum + (s.total_amount || 0), 0);
 
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card green" onclick="window.location.href='inventory.html'" style="cursor:pointer">
       <div class="stat-icon green"><i class="fas fa-pills"></i></div>
       <div class="stat-info">
-        <h3>${meds.length}</h3>
+        <h3>${allMeds.length}</h3>
         <p>Medicines</p>
         <span class="stat-change up"><i class="fas fa-boxes"></i> In stock</span>
       </div>
@@ -148,20 +187,19 @@ function loadStats() {
       <div class="stat-info">
         <h3 style="font-size:18px;">${App.formatCurrency(todaySalesTotal)}</h3>
         <p>Today's Sales</p>
-        <span class="stat-change up"><i class="fas fa-shopping-bag"></i> ${DB.getTodaySales().length} sales</span>
+        <span class="stat-change up"><i class="fas fa-shopping-bag"></i> ${todaySales.length} sales</span>
       </div>
     </div>`;
 }
 
 function renderSalesChart() {
-  const sales = DB.getSales();
   const labels = [], data = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
     labels.push(d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
-    data.push(sales.filter(s => s.sale_date === dateStr).reduce((sum, s) => sum + (s.total_amount || 0), 0));
+    data.push(allSales.filter(s => s.sale_date === dateStr).reduce((sum, s) => sum + (s.total_amount || 0), 0));
   }
   
   const ctx = document.getElementById('salesChart');
@@ -200,9 +238,8 @@ function renderSalesChart() {
 }
 
 function renderCategoryChart() {
-  const meds = DB.getMedicines();
   const catMap = {};
-  meds.forEach(m => { catMap[m.category] = (catMap[m.category] || 0) + m.quantity; });
+  allMeds.forEach(m => { catMap[m.category] = (catMap[m.category] || 0) + m.quantity; });
   
   const ctx = document.getElementById('categoryChart');
   if (!ctx) return;
@@ -231,7 +268,7 @@ function renderCategoryChart() {
 }
 
 function loadAlerts() {
-  const alerts = DB.getAlerts().slice(0, 6);
+  const alerts = allAlerts.slice(0, 6);
   const panel = document.getElementById('alerts-panel');
   if (!panel) return;
   if (!alerts.length) {
@@ -250,8 +287,7 @@ function loadAlerts() {
 }
 
 function loadRecentSales() {
-  const sales = DB.getSales().slice(-5).reverse(); // Last 5 sales
-  const meds = DB.getMedicines();
+  const sales = allSales.slice(0, 5); // Last 5 sales
   const tbody = document.getElementById('recent-sales-table');
   if (!tbody) return;
   if (!sales.length) {
@@ -259,7 +295,7 @@ function loadRecentSales() {
     return;
   }
   tbody.innerHTML = sales.map(s => {
-    const med = meds.find(m => m.medicine_id === s.medicine_id);
+    const med = allMeds.find(m => m.medicine_id === s.medicine_id);
     return `<tr class="clickable-row" onclick="window.location.href='sales.html?view=${s.sale_id}'" style="cursor:pointer">
       <td><strong>${med ? med.medicine_name : '(Deleted)'}</strong></td>
       <td>${s.quantity} units</td>
@@ -270,9 +306,7 @@ function loadRecentSales() {
 }
 
 function loadRecentPurchases() {
-  const purchases = DB.getPurchases().slice(-5).reverse(); // Last 5 purchases
-  const meds = DB.getMedicines();
-  const sups = DB.getSuppliers();
+  const purchases = allPurchases.slice(0, 5); // Last 5 purchases
   const tbody = document.getElementById('recent-purchases-table');
   if (!tbody) return;
   if (!purchases.length) {
@@ -280,8 +314,8 @@ function loadRecentPurchases() {
     return;
   }
   tbody.innerHTML = purchases.map(p => {
-    const med = meds.find(m => m.medicine_id === p.medicine_id);
-    const sup = sups.find(s => s.supplier_id === p.supplier_id);
+    const med = allMeds.find(m => m.medicine_id === p.medicine_id);
+    const sup = allSups.find(s => s.supplier_id === p.supplier_id);
     return `<tr class="clickable-row" onclick="window.location.href='purchases.html'" style="cursor:pointer">
       <td><strong>${med ? med.medicine_name : '(Deleted)'}</strong></td>
       <td>${sup ? sup.supplier_name : '—'}</td>

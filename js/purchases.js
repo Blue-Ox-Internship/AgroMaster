@@ -17,6 +17,7 @@
           <input type="search" id="search-input" placeholder="Search purchases..." enterkeyhint="search" />
         </div>
         <input type="date" class="filter-select" id="date-filter" style="min-width:150px;" />
+        <button class="btn btn-secondary" id="export-csv-btn" style="margin-left:auto;"><i class="fas fa-file-csv"></i> Export CSV</button>
         <button class="btn btn-primary" id="add-purchase-btn"><i class="fas fa-plus"></i> Record Purchase</button>
       </div>
       <div class="card">
@@ -36,6 +37,14 @@
       </div>
     </div>`;
 
+  initPurchases();
+})();
+
+let allPurchases = [], filteredPurchases = [], currentPage = 1;
+let allMeds = [], allSups = [];
+const PAGE_SIZE = 10;
+
+async function initPurchases() {
   document.getElementById('pur-date').value = App.today();
   document.getElementById('add-purchase-btn').addEventListener('click', openPurModal);
   document.getElementById('save-pur-btn').addEventListener('click', savePurchase);
@@ -45,34 +54,67 @@
   // Bind modal input handlers programmatically
   document.getElementById('pur-qty').addEventListener('input', calcPurTotal);
   document.getElementById('pur-price').addEventListener('input', calcPurTotal);
-  loadPurchaseStats();
-  loadPurchases();
-})();
 
-let allPurchases = [], filteredPurchases = [], currentPage = 1;
-const PAGE_SIZE = 10;
+  document.getElementById('export-csv-btn').addEventListener('click', () => {
+    const headers = ['Medicine Name', 'Supplier Name', 'Qty Purchased', 'Cost Per Unit', 'Total Cost', 'Purchase Date'];
+    const rows = filteredPurchases.map(p => {
+      const med = allMeds.find(m => m.medicine_id === p.medicine_id);
+      const sup = allSups.find(s => s.supplier_id === p.supplier_id);
+      return [
+        med ? med.medicine_name : '—',
+        sup ? sup.supplier_name : '—',
+        p.quantity,
+        p.buying_price,
+        p.quantity * p.buying_price,
+        p.purchase_date ? App.formatDate(p.purchase_date) : ''
+      ];
+    });
+    App.exportToCSV('purchases_report.csv', headers, rows);
+  });
 
-function loadPurchaseStats() {
-  const all = DB.getPurchases();
-  const total = all.reduce((sum, p) => sum + (p.quantity * p.buying_price), 0);
+  await loadPurchaseStats();
+  await loadPurchases();
+}
+
+async function loadPurchaseStats() {
+  let purchasesList = [];
+  try {
+    purchasesList = await API.getPurchases();
+  } catch (err) {
+    purchasesList = DB.getPurchases();
+  }
+  const total = purchasesList.reduce((sum, p) => sum + (p.quantity * p.buying_price), 0);
   const now = new Date();
-  const monthP = all.filter(p => { if (!p.purchase_date) return false; const d = new Date(p.purchase_date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
+  const monthP = purchasesList.filter(p => { if (!p.purchase_date) return false; const d = new Date(p.purchase_date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
   const monthTotal = monthP.reduce((sum, p) => sum + (p.quantity * p.buying_price), 0);
   document.getElementById('purchase-stats').innerHTML = `
-    <div class="stat-card green"><div class="stat-icon green"><i class="fas fa-shopping-cart"></i></div><div class="stat-info"><h3>${all.length}</h3><p>Total Purchases</p></div></div>
+    <div class="stat-card green"><div class="stat-icon green"><i class="fas fa-shopping-cart"></i></div><div class="stat-info"><h3>${purchasesList.length}</h3><p>Total Purchases</p></div></div>
     <div class="stat-card orange"><div class="stat-icon orange"><i class="fas fa-money-bill-wave"></i></div><div class="stat-info"><h3 style="font-size:15px;">${App.formatCurrency(total)}</h3><p>Total Spent</p></div></div>
     <div class="stat-card blue"><div class="stat-icon blue"><i class="fas fa-calendar-alt"></i></div><div class="stat-info"><h3 style="font-size:15px;">${App.formatCurrency(monthTotal)}</h3><p>This Month</p></div></div>`;
 }
 
-function loadPurchases() { allPurchases = DB.getPurchases().slice().reverse(); applyFilters(); }
+async function loadPurchases() {
+  document.getElementById('pur-table').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#9e9e9e;"><i class="fas fa-spinner fa-spin"></i> Loading purchases...</td></tr>`;
+  try {
+    allMeds = await API.getMedicines();
+    allSups = await API.getSuppliers();
+    const purchases = await API.getPurchases();
+    allPurchases = purchases.slice().reverse();
+  } catch (err) {
+    console.error('Failed to load purchases data', err);
+    allMeds = DB.getMedicines();
+    allSups = DB.getSuppliers();
+    allPurchases = DB.getPurchases().slice().reverse();
+  }
+  applyFilters();
+}
 
 function applyFilters() {
   const search = document.getElementById('search-input').value.toLowerCase();
   const date = document.getElementById('date-filter').value;
-  const meds = DB.getMedicines(), sups = DB.getSuppliers();
   filteredPurchases = allPurchases.filter(p => {
-    const med = meds.find(m => m.medicine_id === p.medicine_id);
-    const sup = sups.find(s => s.supplier_id === p.supplier_id);
+    const med = allMeds.find(m => m.medicine_id === p.medicine_id);
+    const sup = allSups.find(s => s.supplier_id === p.supplier_id);
     const matchSearch = !search || (med && med.medicine_name.toLowerCase().includes(search)) || (sup && sup.supplier_name.toLowerCase().includes(search));
     const matchDate = !date || p.purchase_date === date;
     return matchSearch && matchDate;
@@ -83,7 +125,6 @@ function applyFilters() {
 function renderTable() {
   const start = (currentPage - 1) * PAGE_SIZE;
   const page = filteredPurchases.slice(start, start + PAGE_SIZE);
-  const meds = DB.getMedicines(), sups = DB.getSuppliers();
   const tbody = document.getElementById('pur-table');
   document.getElementById('pur-count').textContent = `${filteredPurchases.length} records`;
   if (!page.length) {
@@ -91,8 +132,8 @@ function renderTable() {
     document.getElementById('pagination').innerHTML = ''; return;
   }
   tbody.innerHTML = page.map((p, i) => {
-    const med = meds.find(m => m.medicine_id === p.medicine_id);
-    const sup = sups.find(s => s.supplier_id === p.supplier_id);
+    const med = allMeds.find(m => m.medicine_id === p.medicine_id);
+    const sup = allSups.find(s => s.supplier_id === p.supplier_id);
     return `<tr class="clickable-row" onclick="viewPurchase('${p.purchase_id}')">
       <td><strong>${med ? med.medicine_name : '—'}</strong><br><span style="font-size:11px;color:#757575;">${med ? med.category : ''}</span></td>
       <td><strong>${sup ? sup.supplier_name : '—'}</strong><br><span style="font-size:11px;color:#757575;">${sup ? sup.phone : ''}</span></td>
@@ -103,22 +144,7 @@ function renderTable() {
       <td><button class="btn btn-icon btn-danger" title="Delete" onclick="event.stopPropagation();deletePurchase('${p.purchase_id}')"><i class="fas fa-trash"></i></button></td>
     </tr>`;
   }).join('');
-  renderPagination();
-}
-
-function renderPagination() {
-  const total = filteredPurchases.length, totalPages = Math.ceil(total / PAGE_SIZE);
-  if (totalPages <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
-  const start = (currentPage - 1) * PAGE_SIZE + 1, end = Math.min(currentPage * PAGE_SIZE, total);
-  let pages = '';
-  for (let p = 1; p <= totalPages; p++) pages += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
-  document.getElementById('pagination').innerHTML = `
-    <span class="pagination-info">Showing ${start}–${end} of ${total}</span>
-    <div class="pagination-controls">
-      <button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
-      ${pages}
-      <button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
-    </div>`;
+  App.renderPagination('pagination', currentPage, filteredPurchases.length, PAGE_SIZE, goPage);
 }
 
 function goPage(p) { const t = Math.ceil(filteredPurchases.length / PAGE_SIZE); if (p < 1 || p > t) return; currentPage = p; renderTable(); }
@@ -126,10 +152,8 @@ function goPage(p) { const t = Math.ceil(filteredPurchases.length / PAGE_SIZE); 
 function openPurModal() {
   document.getElementById('pur-form').reset();
   document.getElementById('pur-date').value = App.today();
-  const sups = DB.getSuppliers();
-  document.getElementById('pur-supplier').innerHTML = '<option value="">Select supplier</option>' + sups.map(s => `<option value="${s.supplier_id}">${s.supplier_name}</option>`).join('');
-  const meds = DB.getMedicines();
-  document.getElementById('pur-medicine').innerHTML = '<option value="">Select medicine</option>' + meds.map(m => `<option value="${m.medicine_id}">${m.medicine_name} (Stock: ${m.quantity})</option>`).join('');
+  document.getElementById('pur-supplier').innerHTML = '<option value="">Select supplier</option>' + allSups.map(s => `<option value="${s.supplier_id}">${s.supplier_name}</option>`).join('');
+  document.getElementById('pur-medicine').innerHTML = '<option value="">Select medicine</option>' + allMeds.map(m => `<option value="${m.medicine_id}">${m.medicine_name} (Stock: ${m.quantity})</option>`).join('');
   Modal.open('pur-modal');
 }
 
@@ -140,24 +164,27 @@ function calcPurTotal() {
   document.getElementById('pur-total').value = total > 0 ? App.formatCurrency(total) : '';
 }
 
-function savePurchase() {
+async function savePurchase() {
   const supId = document.getElementById('pur-supplier').value;
   const medId = document.getElementById('pur-medicine').value;
   const qty = parseInt(document.getElementById('pur-qty').value);
   const price = parseFloat(document.getElementById('pur-price').value);
   const date = document.getElementById('pur-date').value;
   if (!supId || !medId || !qty || !price || !date) { Toast.show('error', 'Validation Error', 'Please fill in all required fields.'); return; }
-  const med = DB.getMedicineById(medId);
-  DB.addPurchase({ supplier_id: supId, medicine_id: medId, quantity: qty, buying_price: price, purchase_date: date });
+  const med = allMeds.find(m => m.medicine_id === medId);
+  
+  await API.addPurchase({ supplier_id: supId, medicine_id: medId, quantity: qty, buying_price: price, purchase_date: date });
   Toast.show('success', 'Purchase Recorded!', `${qty} unit(s) of ${med ? med.medicine_name : 'medicine'} purchased. Stock updated.`);
-  Modal.close('pur-modal'); loadPurchaseStats(); loadPurchases();
+  Modal.close('pur-modal');
+  await loadPurchaseStats();
+  await loadPurchases();
 }
 
 function viewPurchase(id) {
-  const p = DB.getPurchases().find(x => x.purchase_id === id);
+  const p = allPurchases.find(x => x.purchase_id === id);
   if (!p) return;
-  const med = DB.getMedicines().find(m => m.medicine_id === p.medicine_id);
-  const sup = DB.getSuppliers().find(s => s.supplier_id === p.supplier_id);
+  const med = allMeds.find(m => m.medicine_id === p.medicine_id);
+  const sup = allSups.find(s => s.supplier_id === p.supplier_id);
   Toast.show('info', 'Purchase Details',
     (med ? med.medicine_name : '—') + ' from ' + (sup ? sup.supplier_name : '—') +
     ' — ' + p.quantity + ' units @ ' + App.formatCurrency(p.buying_price) +
@@ -167,7 +194,8 @@ function viewPurchase(id) {
 async function deletePurchase(id) {
   const ok = await Confirm.show({ title: 'Delete Purchase?', message: 'Remove this purchase record? Stock will NOT be reversed.', confirmText: 'Yes, Delete' });
   if (!ok) return;
-  DB.deletePurchase(id);
+  await API.deletePurchase(id);
   Toast.show('success', 'Deleted', 'Purchase record removed.');
-  loadPurchaseStats(); loadPurchases();
+  await loadPurchaseStats();
+  await loadPurchases();
 }

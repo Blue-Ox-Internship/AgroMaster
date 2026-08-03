@@ -30,11 +30,12 @@
       <div class="report-section active" id="tab-stock">
         <h3 class="section-title"><i class="fas fa-boxes"></i> Stock Report</h3>
         <div class="report-summary" id="stock-summary"></div>
-        <div class="toolbar" style="margin-bottom:16px;">
+        <div class="toolbar" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;">
           <div class="search-box" style="flex:1;max-width:320px;margin-bottom:0;">
             <i class="fas fa-search"></i>
             <input type="search" id="search-stock" placeholder="Search stock report..." />
           </div>
+          <button class="btn btn-secondary btn-sm" id="export-stock-csv-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="card">
           <div class="card-header"><h3>All Medicines – Stock Status</h3></div>
@@ -57,8 +58,9 @@
           <input type="date" class="filter-select" id="sales-from" style="min-width:150px;" />
           <span style="font-size:13px;color:#9e9e9e">to</span>
           <input type="date" class="filter-select" id="sales-to" style="min-width:150px;" />
-          <button class="btn btn-primary btn-sm" onclick="filterSalesReport()"><i class="fas fa-filter"></i> Filter</button>
-          <button class="btn btn-secondary btn-sm" onclick="clearSalesFilter()">Clear</button>
+          <button class="btn btn-primary btn-sm" id="sales-filter-btn"><i class="fas fa-filter"></i> Filter</button>
+          <button class="btn btn-secondary btn-sm" id="sales-clear-btn">Clear</button>
+          <button class="btn btn-secondary btn-sm" id="export-sales-csv-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="report-summary" id="sales-summary"></div>
         <div class="card">
@@ -75,11 +77,12 @@
       <div class="report-section" id="tab-expiry">
         <h3 class="section-title"><i class="fas fa-calendar-times"></i> Expiry Report</h3>
         <div class="report-summary" id="expiry-summary"></div>
-        <div class="toolbar" style="margin-bottom:16px;">
+        <div class="toolbar" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;">
           <div class="search-box" style="flex:1;max-width:320px;margin-bottom:0;">
             <i class="fas fa-search"></i>
             <input type="search" id="search-expiry" placeholder="Search expiry report..." />
           </div>
+          <button class="btn btn-secondary btn-sm" id="export-expiry-csv-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="card">
           <div class="card-header"><h3>Medicines by Expiry Status</h3></div>
@@ -95,11 +98,12 @@
       <div class="report-section" id="tab-supplier">
         <h3 class="section-title"><i class="fas fa-truck"></i> Supplier Report</h3>
         <div class="report-summary" id="sup-report-summary"></div>
-        <div class="toolbar" style="margin-bottom:16px;">
+        <div class="toolbar" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;">
           <div class="search-box" style="flex:1;max-width:320px;margin-bottom:0;">
             <i class="fas fa-search"></i>
             <input type="search" id="search-supplier-report" placeholder="Search supplier report..." />
           </div>
+          <button class="btn btn-secondary btn-sm" id="export-supplier-csv-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="card">
           <div class="card-header"><h3>Supplier Purchase Summary</h3></div>
@@ -119,8 +123,9 @@
             <i class="fas fa-search"></i>
             <input type="search" id="search-alerts" placeholder="Search alerts..." />
           </div>
-          <button class="btn btn-sm btn-primary" onclick="DB.checkAndGenerateAlerts(); filterAlertsReport();"><i class="fas fa-sync"></i> Refresh Alerts</button>
-          <button class="btn btn-sm btn-secondary" onclick="DB.markAllAlertsRead(); filterAlertsReport();"><i class="fas fa-check-double"></i> Mark All Read</button>
+          <button class="btn btn-sm btn-primary" id="alerts-refresh-btn"><i class="fas fa-sync"></i> Refresh Alerts</button>
+          <button class="btn btn-sm btn-secondary" id="alerts-readall-btn"><i class="fas fa-check-double"></i> Mark All Read</button>
+          <button class="btn btn-secondary btn-sm" id="export-alerts-csv-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="card">
           <div class="card-header"><h3>All Alerts</h3><span id="alert-stats" style="font-size:13px;color:#616161;"></span></div>
@@ -137,7 +142,34 @@
   initReports();
 })();
 
-function initReports() {
+let allMeds = [], allSales = [], allPurchases = [], allSuppliers = [], allAlerts = [];
+let filteredMedsReport = [], filteredSalesReport = [], filteredExpiryReport = [], filteredSupplierReport = [], filteredAlertsReport = [];
+
+async function loadReportsData() {
+  try {
+    const results = await Promise.all([
+      API.getMedicines(),
+      API.getSales(),
+      API.getPurchases(),
+      API.getSuppliers(),
+      API.getAlerts()
+    ]);
+    allMeds = results[0];
+    allSales = results[1];
+    allPurchases = results[2];
+    allSuppliers = results[3];
+    allAlerts = results[4];
+  } catch (err) {
+    console.error('Failed to load API data for reports, falling back to local DB', err);
+    allMeds = DB.getMedicines();
+    allSales = DB.getSales();
+    allPurchases = DB.getPurchases();
+    allSuppliers = DB.getSuppliers();
+    allAlerts = DB.getAlerts();
+  }
+}
+
+async function initReports() {
   document.querySelectorAll('.report-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
@@ -158,16 +190,105 @@ function initReports() {
   document.getElementById('search-supplier-report').addEventListener('input', App.debounce(filterSupplierReport, 200));
   document.getElementById('search-alerts').addEventListener('input', App.debounce(filterAlertsReport, 200));
 
-  loadStockReport(); loadSalesReport(); loadExpiryReport(); loadSupplierReport(); loadAlertsReport();
+  // Action buttons
+  document.getElementById('sales-filter-btn').addEventListener('click', filterSalesReport);
+  document.getElementById('sales-clear-btn').addEventListener('click', clearSalesFilter);
+  document.getElementById('alerts-refresh-btn').addEventListener('click', async () => {
+    await API.getAlerts(); // Force regenerates on DB client side or fetch from server
+    await loadReportsData();
+    filterAlertsReport();
+  });
+  document.getElementById('alerts-readall-btn').addEventListener('click', async () => {
+    await API.markAllAlertsRead();
+    await loadReportsData();
+    filterAlertsReport();
+  });
+
+  // CSV Export binds
+  document.getElementById('export-stock-csv-btn').addEventListener('click', () => {
+    const headers = ['Medicine', 'Category', 'Batch', 'Stock Qty', 'Unit Price', 'Stock Value', 'Status'];
+    const rows = filteredMedsReport.map(m => [
+      m.medicine_name,
+      m.category,
+      m.batch_number || '',
+      m.quantity,
+      m.unit_price,
+      m.quantity * m.unit_price,
+      getReportStatusRaw(m)
+    ]);
+    App.exportToCSV('stock_report.csv', headers, rows);
+  });
+
+  document.getElementById('export-sales-csv-btn').addEventListener('click', () => {
+    const headers = ['Medicine', 'Category', 'Qty Sold', 'Unit Price', 'Total', 'Sale Date'];
+    const rows = filteredSalesReport.map(s => {
+      const med = allMeds.find(m => m.medicine_id === s.medicine_id);
+      return [
+        med ? med.medicine_name : '(Deleted)',
+        med ? med.category : '—',
+        s.quantity,
+        s.selling_price,
+        s.total_amount,
+        s.sale_date
+      ];
+    });
+    App.exportToCSV('sales_report.csv', headers, rows);
+  });
+
+  document.getElementById('export-expiry-csv-btn').addEventListener('click', () => {
+    const headers = ['Medicine', 'Category', 'Batch', 'Expiry Date', 'Days Left', 'Stock Qty', 'Status'];
+    const rows = filteredExpiryReport.map(m => {
+      const days = App.daysUntilExpiry(m.expiry_date);
+      return [
+        m.medicine_name,
+        m.category,
+        m.batch_number || '',
+        m.expiry_date,
+        days !== null ? days : '—',
+        m.quantity,
+        days < 0 ? 'Expired' : days <= 30 ? 'Expiring Soon' : 'Valid'
+      ];
+    });
+    App.exportToCSV('expiry_report.csv', headers, rows);
+  });
+
+  document.getElementById('export-supplier-csv-btn').addEventListener('click', () => {
+    const headers = ['Supplier Name', 'Contact', 'Purchases Count', 'Total Spent'];
+    const rows = filteredSupplierReport.map(s => [
+      s.supplier_name,
+      s.phone || '',
+      s.purchaseCount,
+      s.totalSpent
+    ]);
+    App.exportToCSV('supplier_purchases_report.csv', headers, rows);
+  });
+
+  document.getElementById('export-alerts-csv-btn').addEventListener('click', () => {
+    const headers = ['Type', 'Message', 'Status', 'Date'];
+    const rows = filteredAlertsReport.map(a => [
+      a.alert_type,
+      a.message,
+      a.status,
+      a.created_at
+    ]);
+    App.exportToCSV('alerts_report.csv', headers, rows);
+  });
+
+  await loadReportsData();
+
+  loadStockReport(); 
+  loadSalesReport(); 
+  loadExpiryReport(); 
+  loadSupplierReport(); 
+  loadAlertsReport();
 }
 
 function loadStockReport() {
-  const meds = DB.getMedicines();
-  const totalValue = meds.reduce((sum, m) => sum + (m.quantity * m.unit_price), 0);
-  const lowStock = meds.filter(m => m.quantity < 10).length;
-  const outOfStock = meds.filter(m => m.quantity === 0).length;
+  const totalValue = allMeds.reduce((sum, m) => sum + (m.quantity * m.unit_price), 0);
+  const lowStock = allMeds.filter(m => m.quantity < 10).length;
+  const outOfStock = allMeds.filter(m => m.quantity === 0).length;
   document.getElementById('stock-summary').innerHTML = `
-    <div class="summary-card"><span class="value">${meds.length}</span><div class="label">Total Medicines</div></div>
+    <div class="summary-card"><span class="value">${allMeds.length}</span><div class="label">Total Medicines</div></div>
     <div class="summary-card"><span class="value">${App.formatCurrency(totalValue)}</span><div class="label">Total Stock Value</div></div>
     <div class="summary-card"><span class="value" style="color:var(--warning)">${lowStock}</span><div class="label">Low Stock Items</div></div>
     <div class="summary-card"><span class="value" style="color:var(--danger)">${outOfStock}</span><div class="label">Out of Stock</div></div>`;
@@ -176,14 +297,13 @@ function loadStockReport() {
 
 function filterStockReport() {
   const search = document.getElementById('search-stock').value.toLowerCase();
-  const meds = DB.getMedicines();
-  const filtered = meds.filter(m => 
+  filteredMedsReport = allMeds.filter(m => 
     m.medicine_name.toLowerCase().includes(search) ||
     m.category.toLowerCase().includes(search) ||
     (m.manufacturer || '').toLowerCase().includes(search) ||
     (m.batch_number || '').toLowerCase().includes(search)
   );
-  const sorted = [...filtered].sort((a, b) => a.quantity - b.quantity);
+  const sorted = [...filteredMedsReport].sort((a, b) => a.quantity - b.quantity);
   document.getElementById('stock-table').innerHTML = sorted.map((m, i) => `
     <tr class="clickable-row" onclick="window.location.href='inventory.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
@@ -205,43 +325,48 @@ function getReportStatus(m) {
   return '<span class="badge badge-success">In Stock</span>';
 }
 
-let salesReportData = [];
+function getReportStatusRaw(m) {
+  if (App.isExpired(m.expiry_date)) return 'Expired';
+  if (m.quantity === 0) return 'Out of Stock';
+  if (m.quantity < 10) return 'Low Stock';
+  if (App.isExpiringSoon(m.expiry_date, 30)) return 'Expiring Soon';
+  return 'In Stock';
+}
 
-function loadSalesReport() { salesReportData = DB.getSales(); filterSalesReport(); }
+function loadSalesReport() { filterSalesReport(); }
 
 function filterSalesReport() {
   const from = document.getElementById('sales-from').value;
   const to = document.getElementById('sales-to').value;
   const search = document.getElementById('search-sales').value.toLowerCase();
   
-  let filtered = salesReportData;
-  if (from) filtered = filtered.filter(s => s.sale_date >= from);
-  if (to) filtered = filtered.filter(s => s.sale_date <= to);
+  filteredSalesReport = allSales;
+  if (from) filteredSalesReport = filteredSalesReport.filter(s => s.sale_date >= from);
+  if (to) filteredSalesReport = filteredSalesReport.filter(s => s.sale_date <= to);
   
-  const meds = DB.getMedicines();
   if (search) {
-    filtered = filtered.filter(s => {
-      const med = meds.find(m => m.medicine_id === s.medicine_id);
+    filteredSalesReport = filteredSalesReport.filter(s => {
+      const med = allMeds.find(m => m.medicine_id === s.medicine_id);
       return (med && med.medicine_name.toLowerCase().includes(search)) || (med && med.category.toLowerCase().includes(search));
     });
   }
 
-  const total = filtered.reduce((sum, s) => sum + (s.total_amount || 0), 0);
-  const totalQty = filtered.reduce((sum, s) => sum + (s.quantity || 0), 0);
+  const total = filteredSalesReport.reduce((sum, s) => sum + (s.total_amount || 0), 0);
+  const totalQty = filteredSalesReport.reduce((sum, s) => sum + (s.quantity || 0), 0);
   const medMap = {};
-  filtered.forEach(s => { medMap[s.medicine_id] = (medMap[s.medicine_id] || 0) + s.quantity; });
+  filteredSalesReport.forEach(s => { medMap[s.medicine_id] = (medMap[s.medicine_id] || 0) + s.quantity; });
   const topMedId = Object.keys(medMap).sort((a, b) => medMap[b] - medMap[a])[0];
-  const topMed = topMedId ? meds.find(m => m.medicine_id === topMedId) : null;
+  const topMed = topMedId ? allMeds.find(m => m.medicine_id === topMedId) : null;
   
   document.getElementById('sales-summary').innerHTML = `
-    <div class="summary-card"><span class="value">${filtered.length}</span><div class="label">Total Transactions</div></div>
+    <div class="summary-card"><span class="value">${filteredSalesReport.length}</span><div class="label">Total Transactions</div></div>
     <div class="summary-card"><span class="value">${App.formatCurrency(total)}</span><div class="label">Total Revenue</div></div>
     <div class="summary-card"><span class="value">${totalQty}</span><div class="label">Total Units Sold</div></div>
     <div class="summary-card"><span class="value" style="font-size:13px">${topMed ? topMed.medicine_name : '—'}</span><div class="label">Top Selling Medicine</div></div>`;
     
-  const sorted = [...filtered].sort((a, b) => b.sale_date.localeCompare(a.sale_date));
+  const sorted = [...filteredSalesReport].sort((a, b) => b.sale_date.localeCompare(a.sale_date));
   document.getElementById('sales-report-table').innerHTML = sorted.map((s, i) => {
-    const med = meds.find(m => m.medicine_id === s.medicine_id);
+    const med = allMeds.find(m => m.medicine_id === s.medicine_id);
     return `<tr class="clickable-row" onclick="window.location.href='sales.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
       <td><strong>${med ? med.medicine_name : '—'}</strong></td>
@@ -263,27 +388,25 @@ function clearSalesFilter() {
 }
 
 function loadExpiryReport() {
-  const meds = DB.getMedicines();
-  const expired = meds.filter(m => App.isExpired(m.expiry_date));
-  const expiringSoon = meds.filter(m => App.isExpiringSoon(m.expiry_date, 30));
-  const valid = meds.filter(m => !App.isExpired(m.expiry_date) && !App.isExpiringSoon(m.expiry_date, 30));
+  const expired = allMeds.filter(m => App.isExpired(m.expiry_date));
+  const expiringSoon = allMeds.filter(m => App.isExpiringSoon(m.expiry_date, 30));
+  const valid = allMeds.filter(m => !App.isExpired(m.expiry_date) && !App.isExpiringSoon(m.expiry_date, 30));
   document.getElementById('expiry-summary').innerHTML = `
     <div class="summary-card"><span class="value" style="color:var(--danger)">${expired.length}</span><div class="label">Expired Medicines</div></div>
     <div class="summary-card"><span class="value" style="color:var(--warning)">${expiringSoon.length}</span><div class="label">Expiring within 30 days</div></div>
     <div class="summary-card"><span class="value" style="color:var(--primary)">${valid.length}</span><div class="label">Valid Stock</div></div>
-    <div class="summary-card"><span class="value">${meds.length}</span><div class="label">Total Medicines</div></div>`;
+    <div class="summary-card"><span class="value">${allMeds.length}</span><div class="label">Total Medicines</div></div>`;
   filterExpiryReport();
 }
 
 function filterExpiryReport() {
   const search = document.getElementById('search-expiry').value.toLowerCase();
-  const meds = DB.getMedicines();
-  const filtered = meds.filter(m => 
+  filteredExpiryReport = allMeds.filter(m => 
     m.medicine_name.toLowerCase().includes(search) ||
     m.category.toLowerCase().includes(search) ||
     (m.manufacturer || '').toLowerCase().includes(search)
   );
-  const sorted = [...filtered].sort((a, b) => { const da = App.daysUntilExpiry(a.expiry_date) ?? 9999, db2 = App.daysUntilExpiry(b.expiry_date) ?? 9999; return da - db2; });
+  const sorted = [...filteredExpiryReport].sort((a, b) => { const da = App.daysUntilExpiry(a.expiry_date) ?? 9999, db2 = App.daysUntilExpiry(b.expiry_date) ?? 9999; return da - db2; });
   document.getElementById('expiry-table').innerHTML = sorted.map((m, i) => {
     const days = App.daysUntilExpiry(m.expiry_date);
     let daysLabel = '—', badge = '';
@@ -305,39 +428,35 @@ function filterExpiryReport() {
 }
 
 function loadSupplierReport() {
-  const sups = DB.getSuppliers();
-  const purchases = DB.getPurchases();
-  const supStats = sups.map(s => {
-    const sp = purchases.filter(p => p.supplier_id === s.supplier_id);
+  const supStats = allSuppliers.map(s => {
+    const sp = allPurchases.filter(p => p.supplier_id === s.supplier_id);
     const totalQty = sp.reduce((sum, p) => sum + (p.quantity || 0), 0);
     const totalSpent = sp.reduce((sum, p) => sum + (p.quantity * p.buying_price), 0);
     return { ...s, purchaseCount: sp.length, totalQty, totalSpent };
   }).sort((a, b) => b.totalSpent - a.totalSpent);
   const totalSpent = supStats.reduce((sum, s) => sum + s.totalSpent, 0);
   document.getElementById('sup-report-summary').innerHTML = `
-    <div class="summary-card"><span class="value">${sups.length}</span><div class="label">Total Suppliers</div></div>
-    <div class="summary-card"><span class="value">${purchases.length}</span><div class="label">Total Purchase Orders</div></div>
+    <div class="summary-card"><span class="value">${allSuppliers.length}</span><div class="label">Total Suppliers</div></div>
+    <div class="summary-card"><span class="value">${allPurchases.length}</span><div class="label">Total Purchase Orders</div></div>
     <div class="summary-card"><span class="value">${App.formatCurrency(totalSpent)}</span><div class="label">Total Spent</div></div>`;
   filterSupplierReport();
 }
 
 function filterSupplierReport() {
   const search = document.getElementById('search-supplier-report').value.toLowerCase();
-  const sups = DB.getSuppliers();
-  const purchases = DB.getPurchases();
-  const filtered = sups.filter(s => 
+  const filtered = allSuppliers.filter(s => 
     s.supplier_name.toLowerCase().includes(search) ||
     (s.phone || '').toLowerCase().includes(search) ||
     (s.email || '').toLowerCase().includes(search) ||
     (s.address || '').toLowerCase().includes(search)
   );
-  const supStats = filtered.map(s => {
-    const sp = purchases.filter(p => p.supplier_id === s.supplier_id);
+  filteredSupplierReport = filtered.map(s => {
+    const sp = allPurchases.filter(p => p.supplier_id === s.supplier_id);
     const totalQty = sp.reduce((sum, p) => sum + (p.quantity || 0), 0);
     const totalSpent = sp.reduce((sum, p) => sum + (p.quantity * p.buying_price), 0);
     return { ...s, purchaseCount: sp.length, totalQty, totalSpent };
   }).sort((a, b) => b.totalSpent - a.totalSpent);
-  document.getElementById('sup-report-table').innerHTML = supStats.map((s, i) => `
+  document.getElementById('sup-report-table').innerHTML = filteredSupplierReport.map((s, i) => `
     <tr class="clickable-row" onclick="window.location.href='suppliers.html'">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
       <td><strong>${s.supplier_name}</strong></td>
@@ -352,11 +471,10 @@ function loadAlertsReport() { filterAlertsReport(); }
 
 function filterAlertsReport() {
   const search = document.getElementById('search-alerts').value.toLowerCase();
-  const alerts = DB.getAlerts();
-  const unread = alerts.filter(a => a.status === 'unread').length;
-  document.getElementById('alert-stats').textContent = `${unread} unread • ${alerts.length} total`;
+  const unread = allAlerts.filter(a => a.status === 'unread').length;
+  document.getElementById('alert-stats').textContent = `${unread} unread • ${allAlerts.length} total`;
   
-  const filtered = alerts.filter(a => 
+  filteredAlertsReport = allAlerts.filter(a => 
     a.message.toLowerCase().includes(search) ||
     a.alert_type.toLowerCase().includes(search)
   );
@@ -366,7 +484,7 @@ function filterAlertsReport() {
     expiry: { label: 'Expiry Warning', badge: 'badge-warning', icon: 'fa-clock' },
     expired: { label: 'Expired', badge: 'badge-danger', icon: 'fa-times-circle' }
   };
-  document.getElementById('alerts-table').innerHTML = filtered.map((a, i) => {
+  document.getElementById('alerts-table').innerHTML = filteredAlertsReport.map((a, i) => {
     const cfg = typeConfig[a.alert_type] || { label: a.alert_type, badge: 'badge-info', icon: 'fa-bell' };
     return `<tr style="${a.status === 'unread' ? 'background:#fffde7;' : ''}">
       <td style="color:#9e9e9e;font-size:12px">${i + 1}</td>
@@ -379,4 +497,8 @@ function filterAlertsReport() {
   }).join('') || '<tr><td colspan="6" class="text-center" style="padding:30px;color:#9e9e9e">No alerts.</td></tr>';
 }
 
-function markRead(id) { DB.markAlertRead(id); loadAlertsReport(); }
+async function markRead(id) { 
+  await API.markAlertRead(id); 
+  await loadReportsData();
+  filterAlertsReport(); 
+}
