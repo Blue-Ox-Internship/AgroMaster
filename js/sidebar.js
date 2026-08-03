@@ -123,9 +123,11 @@ function renderSidebar(pageTitle, pageSubtitle) {
             <i class="fas fa-bell"></i>
             ${alertCount > 0 ? `<span class="notification-badge"></span>` : ''}
           </button>
+          ${!isDashboard ? `
           <div class="topbar-avatar" style="width:36px; height:36px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; border:2px solid rgba(46, 125, 50, 0.15); background:var(--bg); flex-shrink:0;">
             ${avatarContent}
           </div>
+          ` : ''}
         </div>
       </header>
       <div id="page-body"></div>
