@@ -216,7 +216,7 @@ const DB = {
 };
 
 /* ---- Seed Data ---- */
-const SEED_VERSION = 'v7'; // bumped to force re-seed
+const SEED_VERSION = 'v8'; // bumped to force re-seed
 
 function seedDatabase() {
     if (localStorage.getItem(DB.keys.initialized) === SEED_VERSION && DB.getMedicines().length > 0) return;
@@ -227,7 +227,7 @@ function seedDatabase() {
     const users = [
         {
             user_id: 'usr_admin', full_name: 'Akanyihayo Arthur', business_name: 'AgroDrop Uganda Ltd',
-            email: 'admin@agrodrop.com', phone: '+256 700 123456', password: 'admin123',
+            email: 'admin@agrodrop.com', phone: '0768537006', password: 'admin123',
             role: 'Administrator', avatar_url: 'images/arthur.jpg', created_at: '2024-01-10T08:00:00.000Z'
         },
         {
@@ -451,6 +451,7 @@ function seedDatabase() {
         if (session && session.user_id === 'usr_admin') {
             session.full_name = 'Akanyihayo Arthur';
             session.avatar_url = 'images/arthur.jpg';
+            session.phone = '0768537006';
             localStorage.setItem('agrodrop_current_user', JSON.stringify(session));
         }
     } catch (e) {

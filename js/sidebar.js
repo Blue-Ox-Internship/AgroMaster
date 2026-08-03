@@ -27,6 +27,47 @@ function renderSidebar(pageTitle, pageSubtitle) {
 
   const roleClass = { 'Administrator': 'role-admin', 'Store Manager': 'role-manager', 'Sales Attendant': 'role-attendant' };
 
+  const isDashboard = page === 'dashboard' || pageTitle === 'Dashboard';
+  let headerTitleHtml = '';
+  if (isDashboard) {
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+    
+    headerTitleHtml = `
+      <div class="dashboard-greeting-header" style="display: flex; align-items: center; gap: 16px;">
+        <div class="greeting-avatar" style="width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--accent); overflow: hidden; box-shadow: var(--shadow); position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg);">
+          <img src="${user.avatar_url || 'images/arthur.jpg'}" alt="${user.full_name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=2e7d32&color=fff';" />
+        </div>
+        <div class="greeting-details" style="display: flex; flex-direction: column; gap: 3px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; margin: 0; line-height: 1.2;">
+            Welcome back, ${user.full_name} 👋
+          </h2>
+          <div class="greeting-meta" style="font-size: 11px; color: var(--text-light); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span class="role-badge" style="background: var(--success-light); color: var(--primary); padding: 1px 8px; border-radius: 20px; font-weight: 600; font-size: 10.5px; border: 1px solid rgba(46, 125, 50, 0.15); display: inline-flex; align-items: center; gap: 4px;">
+              <i class="fas fa-user-shield"></i> ${user.role}
+            </span>
+            <span class="phone-info" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500;">
+              <i class="fas fa-phone-alt" style="color: var(--primary);"></i> ${user.phone || '0768537006'}
+            </span>
+            <span class="email-info" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500;">
+              <i class="fas fa-envelope" style="color: var(--primary);"></i> ${user.email}
+            </span>
+            <span class="update-time" style="background: rgba(90, 60, 30, 0.05); padding: 1px 8px; border-radius: 6px; color: var(--text-light); font-size: 10.5px; display: inline-flex; align-items: center; gap: 4px;">
+              <i class="fas fa-sync-alt" style="font-size: 9px; animation: spin 8s linear infinite;"></i> Last updated ${formattedTime}
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    headerTitleHtml = `
+      <div class="page-title">
+        <h2>${pageTitle}</h2>
+        ${pageSubtitle ? `<p>${pageSubtitle}</p>` : ''}
+      </div>
+    `;
+  }
+
   const html = `
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <aside class="sidebar" id="sidebar">
@@ -75,10 +116,7 @@ function renderSidebar(pageTitle, pageSubtitle) {
           <button class="sidebar-toggle" id="sidebar-toggle" style="display:flex;">
             <i class="fas fa-bars"></i>
           </button>
-          <div class="page-title">
-            <h2>${pageTitle}</h2>
-            ${pageSubtitle ? `<p>${pageSubtitle}</p>` : ''}
-          </div>
+          ${headerTitleHtml}
         </div>
         <div class="topbar-right" style="display:flex; align-items:center; gap:16px;">
           <button class="topbar-icon-btn" title="Alerts" onclick="window.location.href='reports.html'">

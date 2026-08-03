@@ -4,7 +4,7 @@ module.exports = [
         full_name: 'Akanyihayo Arthur',
         business_name: 'AgroDrop Uganda Ltd',
         email: 'admin@agrodrop.com',
-        phone: '+256 700 123456',
+        phone: '0768537006',
         password: 'admin123',
         role: 'Administrator',
         avatar_url: 'images/arthur.jpg'
