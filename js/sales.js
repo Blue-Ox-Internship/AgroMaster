@@ -40,6 +40,11 @@
   document.getElementById('save-sale-btn').addEventListener('click', saveSale);
   document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('date-filter').addEventListener('change', applyFilters);
+
+  // Bind modal input handlers programmatically
+  document.getElementById('sale-medicine').addEventListener('change', onMedicineSelect);
+  document.getElementById('sale-qty').addEventListener('input', calcTotal);
+  document.getElementById('sale-price').addEventListener('input', calcTotal);
   loadSalesStats();
   loadSales();
 

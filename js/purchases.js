@@ -41,6 +41,10 @@
   document.getElementById('save-pur-btn').addEventListener('click', savePurchase);
   document.getElementById('search-input').addEventListener('input', App.debounce(applyFilters, 200));
   document.getElementById('date-filter').addEventListener('change', applyFilters);
+
+  // Bind modal input handlers programmatically
+  document.getElementById('pur-qty').addEventListener('input', calcPurTotal);
+  document.getElementById('pur-price').addEventListener('input', calcPurTotal);
   loadPurchaseStats();
   loadPurchases();
 })();

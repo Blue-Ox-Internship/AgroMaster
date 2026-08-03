@@ -76,6 +76,18 @@ function initInventory() {
   document.getElementById('category-filter').addEventListener('change', applyFilters);
   document.getElementById('stock-filter').addEventListener('change', applyFilters);
 
+  document.getElementById('med-category').addEventListener('change', function () {
+    const newCatInput = document.getElementById('med-new-category');
+    if (this.value === '__new__') {
+      newCatInput.style.display = 'block';
+      newCatInput.required = true;
+    } else {
+      newCatInput.style.display = 'none';
+      newCatInput.required = false;
+      newCatInput.value = '';
+    }
+  });
+
   // Handle URL deep links and filters
   const urlParams = new URLSearchParams(window.location.search);
   const viewId = urlParams.get('view');
@@ -219,6 +231,7 @@ function populateModalCategories(selected) {
   Object.keys(cats).sort().forEach(function (c) {
     sel.innerHTML += '<option' + (c === selected ? ' selected' : '') + '>' + c + '</option>';
   });
+  sel.innerHTML += '<option value="__new__">+ Add New Category...</option>';
 }
 
 function openAddModal() {
@@ -226,6 +239,8 @@ function openAddModal() {
   document.getElementById('modal-title').textContent = 'Add New Medicine';
   document.getElementById('med-form').reset();
   document.getElementById('med-id').value = '';
+  document.getElementById('med-new-category').style.display = 'none';
+  document.getElementById('med-new-category').value = '';
   populateModalCategories('');
   Modal.open('med-modal');
 }
@@ -237,6 +252,8 @@ function openEditModal(id) {
   document.getElementById('modal-title').textContent = 'Edit Medicine';
   document.getElementById('med-id').value = id;
   document.getElementById('med-name').value = med.medicine_name;
+  document.getElementById('med-new-category').style.display = 'none';
+  document.getElementById('med-new-category').value = '';
   populateModalCategories(med.category);
   document.getElementById('med-manufacturer').value = med.manufacturer || '';
   document.getElementById('med-batch').value = med.batch_number || '';
@@ -249,7 +266,10 @@ function openEditModal(id) {
 
 function saveMedicine() {
   const name = document.getElementById('med-name').value.trim();
-  const category = document.getElementById('med-category').value;
+  let category = document.getElementById('med-category').value;
+  if (category === '__new__') {
+    category = document.getElementById('med-new-category').value.trim();
+  }
   const expiry = document.getElementById('med-expiry').value;
   const qty = parseInt(document.getElementById('med-quantity').value);
   const price = parseFloat(document.getElementById('med-price').value);

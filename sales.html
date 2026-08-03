@@ -22,7 +22,7 @@
                 <form id="sale-form" novalidate>
                     <div class="form-group">
                         <label>Medicine <span class="req">*</span></label>
-                        <select class="form-control" id="sale-medicine" required onchange="onMedicineSelect()">
+                        <select class="form-control" id="sale-medicine" required>
                             <option value="">Select medicine</option>
                         </select>
                     </div>
@@ -36,13 +36,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Quantity <span class="req">*</span></label>
-                            <input type="number" class="form-control" id="sale-qty" min="1" placeholder="0" required
-                                oninput="calcTotal()" />
+                            <input type="number" class="form-control" id="sale-qty" min="1" placeholder="0" required />
                         </div>
                         <div class="form-group">
                             <label>Selling Price (UGX) <span class="req">*</span></label>
-                            <input type="number" class="form-control" id="sale-price" min="0" placeholder="0" required
-                                oninput="calcTotal()" />
+                            <input type="number" class="form-control" id="sale-price" min="0" placeholder="0" required />
                         </div>
                     </div>
                     <div class="form-group">
