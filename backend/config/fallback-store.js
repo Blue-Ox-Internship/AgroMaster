@@ -1,77 +1,52 @@
-﻿const demoUsers = require('./demo-users');
+const demoUsers = require('./demo-users');
+
+const today = new Date();
+const dp = (months) => {
+    const dd = new Date(today);
+    dd.setMonth(dd.getMonth() - months);
+    return dd.toISOString().split('T')[0];
+};
+const pd = (days) => {
+    const dd = new Date(today);
+    dd.setDate(dd.getDate() - days);
+    return dd.toISOString().split('T')[0];
+};
 
 const state = {
     users: demoUsers.map((user) => ({ ...user, user_id: user.user_id || `usr_${Math.random().toString(36).slice(2, 7)}` })),
     medicines: [
-        {
-            medicine_id: 'med_001',
-            medicine_name: 'Oxytetracycline 20%',
-            category: 'Antibiotic',
-            manufacturer: 'Norbrook',
-            batch_number: 'BT2024001',
-            expiry_date: '2026-12-31',
-            quantity: 45,
-            unit_price: 35000,
-            description: 'Broad-spectrum antibiotic for livestock',
-            created_at: '2024-01-10T08:00:00.000Z',
-            updated_at: '2024-01-10T08:00:00.000Z'
-        },
-        {
-            medicine_id: 'med_002',
-            medicine_name: 'Albendazole 2.5%',
-            category: 'Antiparasitic',
-            manufacturer: 'Elanco',
-            batch_number: 'BT2024002',
-            expiry_date: '2026-10-15',
-            quantity: 7,
-            unit_price: 18000,
-            description: 'Dewormer for internal parasites',
-            created_at: '2024-01-12T08:00:00.000Z',
-            updated_at: '2024-01-12T08:00:00.000Z'
-        },
-        {
-            medicine_id: 'med_003',
-            medicine_name: 'Ivermectin 1%',
-            category: 'Antiparasitic',
-            manufacturer: 'Kepro',
-            batch_number: 'BT2024003',
-            expiry_date: '2026-09-30',
-            quantity: 30,
-            unit_price: 42000,
-            description: 'Treats internal and external parasites',
-            created_at: '2024-01-13T08:00:00.000Z',
-            updated_at: '2024-01-13T08:00:00.000Z'
-        }
+        { medicine_id: 'med_001', medicine_name: 'Oxytetracycline 20%', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT001', expiry_date: '2027-03-15', quantity: 120, unit_price: 18000, description: 'Broad-spectrum antibiotic for livestock', created_at: dp(3) },
+        { medicine_id: 'med_002', medicine_name: 'Albendazole Bolus', category: 'Dewormer', manufacturer: 'Elanco', batch_number: 'BAT002', expiry_date: '2027-01-10', quantity: 80, unit_price: 12000, description: 'Dewormer for internal parasites', created_at: dp(3) },
+        { medicine_id: 'med_003', medicine_name: 'Ivermectin Injection', category: 'Dewormer', manufacturer: 'Kepro', batch_number: 'BAT003', expiry_date: '2026-11-05', quantity: 45, unit_price: 25000, description: 'Treats internal and external parasites', created_at: dp(2) },
+        { medicine_id: 'med_004', medicine_name: 'Penicillin-Streptomycin', category: 'Antibiotic', manufacturer: 'Norbrook', batch_number: 'BAT004', expiry_date: '2027-08-20', quantity: 150, unit_price: 22000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_005', medicine_name: 'Multivitamin Injection', category: 'Vitamin', manufacturer: 'Intervet', batch_number: 'BAT005', expiry_date: '2026-12-30', quantity: 60, unit_price: 15000, description: '', created_at: dp(2) },
+        { medicine_id: 'med_006', medicine_name: 'Calcium Borogluconate', category: 'Supplement', manufacturer: 'Elanco', batch_number: 'BAT006', expiry_date: '2028-02-12', quantity: 95, unit_price: 28000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_007', medicine_name: 'Ketoprofen Injection', category: 'Anti-inflammatory', manufacturer: 'Kepro', batch_number: 'BAT007', expiry_date: '2026-09-18', quantity: 18, unit_price: 35000, description: '', created_at: dp(4) },
+        { medicine_id: 'med_008', medicine_name: 'Diminazene Aceturate', category: 'Antiprotozoal', manufacturer: 'Intervet', batch_number: 'BAT008', expiry_date: '2027-05-22', quantity: 75, unit_price: 30000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_009', medicine_name: 'Amprolium Powder', category: 'Coccidiostat', manufacturer: 'Norbrook', batch_number: 'BAT009', expiry_date: '2027-04-11', quantity: 55, unit_price: 27000, description: '', created_at: dp(1) },
+        { medicine_id: 'med_010', medicine_name: 'Sulfadimidine Injection', category: 'Antibiotic', manufacturer: 'Elanco', batch_number: 'BAT010', expiry_date: '2026-10-08', quantity: 20, unit_price: 24000, description: '', created_at: dp(1) }
     ],
     suppliers: [
-        {
-            supplier_id: 'sup_001',
-            supplier_name: 'Norbrook Uganda Ltd',
-            phone: '+256 414 123456',
-            email: 'orders@norbrook.ug',
-            address: 'Plot 45, Kampala Industrial Area',
-            contact_person: 'Jane Ayesiga',
-            payment_terms: 'Net 30',
-            is_active: true,
-            created_at: '2024-01-05T00:00:00.000Z',
-            updated_at: '2024-01-05T00:00:00.000Z'
-        },
-        {
-            supplier_id: 'sup_002',
-            supplier_name: 'Elanco Animal Health',
-            phone: '+256 414 234567',
-            email: 'ugorders@elanco.com',
-            address: 'Nakawa Business Park, Kampala',
-            contact_person: 'Moses Otim',
-            payment_terms: 'Net 15',
-            is_active: true,
-            created_at: '2024-01-06T00:00:00.000Z',
-            updated_at: '2024-01-06T00:00:00.000Z'
-        }
+        { supplier_id: 'sup_001', supplier_name: 'Norbrook Uganda Ltd', phone: '+256 414 123456', email: 'orders@norbrook.ug', address: 'Plot 45, Kampala Industrial Area', is_active: true, created_at: '2024-01-05T00:00:00.000Z' },
+        { supplier_id: 'sup_002', supplier_name: 'Elanco Animal Health', phone: '+256 414 234567', email: 'ugorders@elanco.com', address: 'Nakawa Business Park, Kampala', is_active: true, created_at: '2024-01-06T00:00:00.000Z' },
+        { supplier_id: 'sup_003', supplier_name: 'Kepro B.V. East Africa', phone: '+256 414 345678', email: 'sales@kepro.ug', address: 'Portbell Road, Kampala', is_active: true, created_at: '2024-01-07T00:00:00.000Z' }
     ],
-    purchases: [],
-    sales: [],
-    alerts: []
+    purchases: [
+        { purchase_id: 'pur_001', supplier_id: 'sup_001', medicine_id: 'med_001', quantity: 50, buying_price: 15000, purchase_date: dp(3) },
+        { purchase_id: 'pur_002', supplier_id: 'sup_002', medicine_id: 'med_002', quantity: 30, buying_price: 10000, purchase_date: dp(3) },
+        { purchase_id: 'pur_003', supplier_id: 'sup_003', medicine_id: 'med_003', quantity: 40, buying_price: 20000, purchase_date: dp(2) }
+    ],
+    sales: [
+        { sale_id: 'sal_001', medicine_id: 'med_001', quantity: 3, selling_price: 35000, total_amount: 105000, sale_date: pd(0) },
+        { sale_id: 'sal_002', medicine_id: 'med_005', quantity: 10, selling_price: 22000, total_amount: 220000, sale_date: pd(0) },
+        { sale_id: 'sal_003', medicine_id: 'med_003', quantity: 2, selling_price: 42000, total_amount: 84000, sale_date: pd(1) },
+        { sale_id: 'sal_004', medicine_id: 'med_009', quantity: 4, selling_price: 38000, total_amount: 152000, sale_date: pd(2) },
+        { sale_id: 'sal_005', medicine_id: 'med_006', quantity: 1, selling_price: 65000, total_amount: 65000, sale_date: pd(3) }
+    ],
+    alerts: [
+        { alert_id: 'alt_001', medicine_id: 'med_007', alert_type: 'low_stock', message: 'Low Stock Alert: Ketoprofen Injection quantity (18) is below threshold 10.', status: 'unread', created_at: new Date().toISOString() },
+        { alert_id: 'alt_002', medicine_id: 'med_010', alert_type: 'expiry', message: 'Expiry Warning: Sulfadimidine Injection expires soon on 2026-10-08.', status: 'unread', created_at: new Date().toISOString() }
+    ]
 };
 
 function clone(value) {
